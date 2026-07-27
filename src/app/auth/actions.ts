@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getSiteUrl } from "@/lib/site-url";
+import { isProviderEnabled } from "@/lib/auth-providers";
 
 export type AuthState = {
   error?: string;
@@ -99,15 +100,25 @@ export async function signUpWithPassword(
   redirect("/");
 }
 
-export async function signInWithGoogle(formData: FormData) {
+/**
+ * Entrada por OAuth. Preparada pero inactiva: hoy ENABLED_PROVIDERS está vacío,
+ * así que esta acción rechaza cualquier proveedor. Ver src/lib/auth-providers.ts
+ * para activar Google o Discord sin tocar componentes.
+ */
+export async function signInWithOAuth(formData: FormData) {
   if (!isSupabaseConfigured) redirect("/login?error=supabase");
+
+  const provider = String(formData.get("provider") ?? "");
+  // Se valida contra la lista, no contra lo que llegue del formulario: si no,
+  // cualquiera podría forzar un proveedor que no hemos configurado.
+  if (!isProviderEnabled(provider)) redirect("/login?error=oauth_disabled");
 
   const next = String(formData.get("next") ?? "/");
   const supabase = await createClient();
   const siteUrl = await getSiteUrl();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
+    provider,
     options: {
       redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
     },

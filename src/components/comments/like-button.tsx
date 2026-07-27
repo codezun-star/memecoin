@@ -61,8 +61,8 @@ export function LikeButton({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-all duration-[180ms]",
         liked
-          ? "bg-accent-500/15 text-accent-500"
-          : "text-dust hover:bg-white/[0.06] hover:text-sand",
+          ? "bg-brand-soft text-brand-strong"
+          : "text-ink-faint hover:bg-sunken hover:text-ink-soft",
       )}
     >
       <Heart

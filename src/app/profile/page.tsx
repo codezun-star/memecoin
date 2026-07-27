@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   if (!isSupabaseConfigured) {
     return (
       <div className="shell py-16">
-        <div className="surface mx-auto max-w-xl p-6 text-sm text-doge">
+        <div className="surface-card mx-auto max-w-xl p-6 text-sm text-doge-ink">
           El perfil necesita Supabase configurado.
         </div>
       </div>
@@ -27,10 +27,10 @@ export default async function ProfilePage() {
         <div>
           <p className="eyebrow mb-1">Tu cuenta</p>
           <h1 className="font-display text-display-lg">Mi perfil</h1>
-          <p className="mt-2 text-sm text-dust">{session.user.email}</p>
+          <p className="mt-2 text-sm text-ink-faint">{session.user.email}</p>
         </div>
 
-        <div className="surface p-6">
+        <div className="surface-card p-6">
           <ProfileForm
             username={session.profile?.username ?? ""}
             bio={session.profile?.bio ?? null}

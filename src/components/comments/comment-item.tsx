@@ -30,9 +30,9 @@ export function CommentItem({
   if (comment.isDeleted) {
     return (
       <li className={cn("py-4", isReply && "pl-4")}>
-        <p className="text-sm italic text-dust">Este comentario fue eliminado por su autor.</p>
+        <p className="text-sm italic text-ink-faint">Este comentario fue eliminado por su autor.</p>
         {comment.replies.length > 0 && (
-          <ul className="mt-2 divide-y divide-white/[0.06] border-l border-white/[0.08] pl-4">
+          <ul className="mt-2 divide-y divide-line border-l border-line pl-4">
             {comment.replies.map((reply) => (
               <CommentItem key={reply.id} comment={reply} slug={slug} viewer={viewer} isReply />
             ))}
@@ -53,16 +53,16 @@ export function CommentItem({
 
         <div className="min-w-0 flex-1">
           <header className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="font-medium text-cream">{comment.author?.username ?? "anónimo"}</span>
+            <span className="font-medium text-ink">{comment.author?.username ?? "anónimo"}</span>
             {comment.isMine && (
-              <span className="rounded-full bg-brand-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-400">
+              <span className="rounded-full bg-brand-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-strong">
                 tú
               </span>
             )}
-            <RelativeTime date={comment.createdAt} className="text-xs text-dust" />
+            <RelativeTime date={comment.createdAt} className="text-xs text-ink-faint" />
           </header>
 
-          <p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-sand">
+          <p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed text-ink-soft">
             {comment.body}
           </p>
 
@@ -80,7 +80,7 @@ export function CommentItem({
                 type="button"
                 onClick={() => setReplying((v) => !v)}
                 aria-expanded={replying}
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-dust transition-colors hover:bg-white/[0.06] hover:text-sand"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-ink-faint transition-colors hover:bg-sunken hover:text-ink-soft"
               >
                 <MessageSquare className="size-3.5" aria-hidden />
                 Responder
@@ -96,7 +96,7 @@ export function CommentItem({
                   onClick={(e) => {
                     if (!confirm("¿Borrar este comentario?")) e.preventDefault();
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-dust transition-colors hover:bg-down-soft hover:text-down-500"
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-ink-faint transition-colors hover:bg-down-soft hover:text-down"
                 >
                   <Trash2 className="size-3.5" aria-hidden />
                   Borrar
@@ -106,7 +106,7 @@ export function CommentItem({
           </div>
 
           {deleteState.error ? (
-            <p role="alert" className="mt-2 text-sm text-down-500">
+            <p role="alert" className="mt-2 text-sm text-down">
               {deleteState.error}
             </p>
           ) : null}
@@ -127,8 +127,8 @@ export function CommentItem({
           )}
 
           {replying && !viewer && (
-            <p className="mt-3 text-sm text-dust">
-              <a href={`/login?next=/coin/${slug}`} className="text-brand-400 hover:underline">
+            <p className="mt-3 text-sm text-ink-faint">
+              <a href={`/login?next=/coin/${slug}`} className="text-brand-strong hover:underline">
                 Inicia sesión
               </a>{" "}
               para responder.
@@ -136,7 +136,7 @@ export function CommentItem({
           )}
 
           {comment.replies.length > 0 && (
-            <ul className="mt-3 divide-y divide-white/[0.06] border-l border-white/[0.08] pl-4">
+            <ul className="mt-3 divide-y divide-line border-l border-line pl-4">
               {comment.replies.map((reply) => (
                 <CommentItem key={reply.id} comment={reply} slug={slug} viewer={viewer} isReply />
               ))}

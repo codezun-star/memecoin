@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import { directionOf, formatPercent } from "@/lib/format";
 
 const TONE = {
-  up: "bg-up-soft text-up-500",
-  down: "bg-down-soft text-down-500",
-  flat: "bg-flat-soft text-flat-500",
+  up: "bg-up-soft text-up",
+  down: "bg-down-soft text-down",
+  flat: "bg-flat-soft text-flat",
 } as const;
 
 const ARROW = { up: "▲", down: "▼", flat: "•" } as const;

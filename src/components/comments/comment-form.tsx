@@ -73,14 +73,14 @@ export function CommentForm({
         />
 
         {state.error ? (
-          <p role="alert" className="text-sm text-down-500">
+          <p role="alert" className="text-sm text-down">
             {state.error}
           </p>
         ) : null}
 
         <div className="flex items-center justify-between gap-3">
           <span
-            className={`tabular text-xs ${length > MAX_BODY * 0.9 ? "text-doge" : "text-dust"}`}
+            className={`tabular text-xs ${length > MAX_BODY * 0.9 ? "text-doge-ink" : "text-ink-faint"}`}
           >
             {length}/{MAX_BODY}
           </span>

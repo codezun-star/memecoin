@@ -10,10 +10,10 @@ export async function SiteHeader() {
   const session = await getSessionUser();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-ink-900/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-xl">
       <div className="shell flex h-16 items-center gap-6">
         <Link href="/" className="group flex items-center gap-2 font-display text-lg font-extrabold">
-          <span className="grid size-8 place-items-center rounded-full bg-hype text-base text-ink-950 shadow-inset-top transition-transform duration-[180ms] group-hover:rotate-12">
+          <span className="grid size-8 place-items-center rounded-full bg-hype text-base text-ink shadow-inset-top transition-transform duration-[180ms] group-hover:rotate-12">
             🐕
           </span>
           <span className="hidden sm:inline">
@@ -27,7 +27,7 @@ export async function SiteHeader() {
               key={coin.id}
               href={`/coin/${coin.slug}`}
               style={{ ["--coin-accent" as string]: coin.accent }}
-              className="group relative rounded-full px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-sand transition-colors hover:text-cream"
+              className="group relative rounded-full px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-ink-soft transition-colors hover:text-ink"
             >
               {coin.symbol}
               {/* Subrayado que crece desde el centro (DESIGN.md §7) */}
@@ -41,7 +41,7 @@ export async function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           {!isSupabaseConfigured ? (
-            <span className="hidden rounded-full border border-doge/30 bg-doge-soft px-3 py-1 text-xs text-doge sm:inline">
+            <span className="hidden rounded-full border border-doge/40 bg-doge-soft px-3 py-1 text-xs text-doge-ink sm:inline">
               Supabase sin configurar
             </span>
           ) : session ? (

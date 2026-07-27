@@ -12,53 +12,64 @@ añadir una pantalla nueva, usa tokens — no hex sueltos ni valores mágicos.
 
 Traducción práctica en tres reglas que resuelven casi cualquier duda de diseño:
 
-1. **El color grita, la tipografía susurra.** La personalidad vive en gradientes,
-   glows y acentos por moneda. El texto de lectura es sobrio y de alto contraste.
-2. **Los números nunca son un chiste.** Precios, market caps y porcentajes van en
-   fuente monoespaciada tabular. Un precio nunca "baila" al actualizarse.
-3. **Divertido ≠ infantil.** Nada de Comic Sans, emojis como iconografía funcional
-   ni animaciones que interrumpan. La diversión se nota en el detalle (hover,
-   gradientes, formas), no en el ruido.
+1. **El color grita, la tipografía susurra.** La personalidad vive en el color de
+   cada moneda, los degradados y la luz. El texto de lectura es sobrio y de alto
+   contraste.
+2. **Los números nunca son un chiste.** Precios, capitalizaciones y porcentajes
+   van en fuente monoespaciada tabular. Un precio nunca "baila" al actualizarse.
+3. **Divertido ≠ infantil.** Nada de Comic Sans, emojis como iconografía
+   funcional ni animaciones que interrumpan. La diversión se nota en el detalle
+   (hover, degradados, formas), no en el ruido.
 
-Se ha optado por un **tema oscuro único**. Los colores de las cuatro monedas
-(naranja, dorado, verde, ámbar) son saturados y cálidos: sobre fondo claro pierden
-fuerza y generan problemas de contraste; sobre carbón cálido brillan. Un solo tema
-bien ejecutado > dos temas a medias en un MVP.
+**Tema claro único.** La base es una crema cálida (`#FFFBF3`), no blanco puro: el
+blanco puro deja los naranjas y dorados de las cuatro marcas flotando sin
+contexto, mientras que sobre crema entran en la misma familia de temperatura. Un
+solo tema bien ejecutado > dos temas a medias en un MVP.
 
 ---
 
 ## 2. Paleta
 
-### 2.1 Fondos — "warm charcoal"
+Todos los colores de texto de esta sección están **verificados a WCAG AA
+(≥ 4,5:1)** sobre `canvas` y sobre `surface`. No es una estimación: los ratios se
+calcularon antes de fijar los valores, y varios tokens se oscurecieron a
+propósito para llegar (`brand-strong`, `up` e `ink-faint` no pasaban en su primer
+valor).
 
-Nunca gris neutro ni negro puro: todos los fondos llevan una pizca de rojo/amarillo
-para armonizar con las marcas de las monedas.
+### 2.1 Superficies — crema cálida
+
+Nunca gris neutro: todos los fondos llevan una pizca de rojo/amarillo para
+armonizar con las marcas de las monedas.
 
 | Token Tailwind | Hex | Uso |
 | --- | --- | --- |
-| `bg-ink-950` | `#0B0A09` | Fondo raíz del documento |
-| `bg-ink-900` | `#12100E` | Fondo de página / base del gradiente |
-| `bg-ink-800` | `#1A1613` | Superficie de tarjeta |
-| `bg-ink-700` | `#241E19` | Superficie elevada, inputs, hover de fila |
-| `bg-ink-600` | `#332A22` | Bordes, separadores |
-| `bg-ink-500` | `#4A3D31` | Borde en hover, estados disabled |
+| `bg-canvas` | `#FFFBF3` | Fondo de página |
+| `bg-surface` | `#FFFFFF` | Superficie de tarjeta y panel |
+| `bg-sunken` | `#FBF3E6` | Inputs, fondos secundarios, hover de fila |
+| `border-line` | `#F0E3CE` | Bordes y separadores |
+| `border-line-strong` | `#E0CDB0` | Borde en hover, contornos marcados |
 
 ### 2.2 Colores de marca (uno por moneda)
 
-Cada moneda tiene un color propio que tiñe su tarjeta, su glow y los acentos de su
-página de detalle. Es el recurso principal de identidad del producto.
+Cada moneda tiene un color propio que tiñe su tarjeta, su franja superior y los
+acentos de su página de detalle. Es el recurso principal de identidad.
 
-| Moneda | Token | Hex | Notas |
+Sobre fondo claro un amarillo o un verde vivos **no se leen como texto**, así que
+cada moneda tiene dos variantes y no son intercambiables:
+
+| Moneda | `accent` (vivo) | `accentInk` (AA) | Contraste de `accentInk` |
 | --- | --- | --- | --- |
-| Shiba Inu | `shiba` | `#FF7A18` | Naranja cálido del Shiba |
-| Dogecoin | `doge` | `#F5C542` | Dorado mostaza |
-| Pepe | `pepe` | `#4ADE80` | Verde brillante |
-| Bonk | `bonk` | `#FFB627` | Ámbar vibrante |
+| Shiba Inu | `#FF7A18` | `#C4500A` | 4,52:1 |
+| Dogecoin | `#F5C542` | `#8A6B00` | 4,86:1 |
+| Pepe | `#4ADE80` | `#14803F` | 4,86:1 |
+| Bonk | `#FFB627` | `#9A6300` | 4,89:1 |
 
-Cada uno tiene variantes `-soft` (fondo tintado al ~12 %) y `-deep` (versión oscura
-para gradientes). Se exponen además como variables CSS por página
-(`--coin-accent`, `--coin-accent-soft`) para que los componentes genéricos se tiñan
-solos sin lógica condicional.
+- **`accent`** → logos, franjas, halos, relleno del área del gráfico.
+- **`accentInk`** → texto, trazo del gráfico, iconos y estados activos.
+
+Ambas viajan como variables CSS por página (`--coin-accent`, `--coin-accent-ink`,
+`--coin-accent-soft`) para que los componentes genéricos se tiñan solos sin
+lógica condicional por moneda.
 
 ### 2.3 Primarios de UI
 
@@ -67,38 +78,37 @@ cuatro marcas — para que la UI sea coherente sin pertenecer a ninguna moneda.
 
 | Token | Hex | Uso |
 | --- | --- | --- |
-| `brand-500` | `#FF8A1F` | Color de acción principal |
-| `brand-400` | `#FFA23D` | Hover |
-| `brand-600` | `#E56A00` | Active / pressed |
-| `accent-500` | `#4ADE80` | Acento secundario (verde Pepe): likes, éxito, activos |
-| `gradient-hype` | `#FF7A18 → #F5C542` | Gradiente de titulares y CTA |
+| `brand` | `#FF7A18` | Rellenos y degradados de acción |
+| `brand-strong` | `#B84E08` | **La única variante válida para texto y enlaces** (4,92:1) |
+| `bg-hype` | `#FF7A18 → #FFC42E` | Gradiente de titulares y CTA |
+
+El botón primario lleva **texto oscuro** (`ink`) sobre el gradiente, no blanco:
+en blanco el naranja se queda en 2,6:1 y no pasa AA; en oscuro sube a ~11:1.
 
 ### 2.4 Texto
 
-| Token | Hex | Uso |
-| --- | --- | --- |
-| `text-cream` | `#FFF8EF` | Titulares, precios, texto primario |
-| `text-sand` | `#C6B7A6` | Texto secundario, labels |
-| `text-dust` | `#8C7C6C` | Metadatos, timestamps, placeholders |
-
-`cream` sobre `ink-800` da ~15:1 de contraste; `sand` ~7:1; `dust` ~4.6:1 y por eso
-`dust` solo se usa en texto de apoyo, nunca en contenido esencial.
+| Token | Hex | Contraste sobre canvas | Uso |
+| --- | --- | --- | --- |
+| `text-ink` | `#1F1710` | 17,1:1 | Titulares, precios, texto primario |
+| `text-ink-soft` | `#6A5847` | 6,6:1 | Texto secundario, cuerpo |
+| `text-ink-faint` | `#7C6957` | 5,1:1 | Metadatos, timestamps, placeholders |
 
 ### 2.5 Estados de mercado
 
-**Regla dura: verde y rojo se reservan para dirección de precio.** No se usan para
-nada más en la UI, para que un vistazo baste para leer el mercado.
+**Regla dura: verde y rojo se reservan para dirección de precio.** No se usan
+para nada más en la UI, para que un vistazo baste para leer el mercado. (El botón
+de "me gusta" usa naranja de marca justamente por esto.)
 
 | Token | Hex | Uso |
 | --- | --- | --- |
-| `up-500` | `#3DDC84` | Subida de precio, delta positivo |
-| `up-soft` | `rgba(61,220,132,.14)` | Fondo del badge en verde |
-| `down-500` | `#FF4D6A` | Bajada de precio, delta negativo |
-| `down-soft` | `rgba(255,77,106,.14)` | Fondo del badge en rojo |
-| `flat-500` | `#8C7C6C` | Variación nula o dato no disponible |
+| `up` | `#0B7F45` | Subida de precio, delta positivo |
+| `up-soft` | `rgba(11,127,69,.10)` | Fondo del badge en verde |
+| `down` | `#CE1F45` | Bajada de precio, delta negativo |
+| `down-soft` | `rgba(206,31,69,.09)` | Fondo del badge en rojo |
+| `flat` | `#7C6957` | Variación nula o dato no disponible |
 
-Además del color, la dirección se refuerza siempre con **signo (+/−) y una flecha**:
-no dependemos solo del color (daltonismo).
+Además del color, la dirección se refuerza siempre con **signo (+/−) y una
+flecha**: no dependemos solo del color (daltonismo).
 
 ---
 
@@ -147,17 +157,22 @@ Escala base de **4 px**. Se usan casi siempre los pasos 2/3/4/6/8/12/16
 | `rounded-input` | 14 px | Inputs, selects, textareas |
 | `rounded-full` | 9999 px | Botones, badges, avatares, pills |
 
-La profundidad **no** se hace con sombras negras (invisibles sobre fondo oscuro),
-sino con tres capas combinadas:
+Sobre fondo claro la profundidad **sí** se hace con sombra real, pero tintada en
+cálido: una sombra gris o negra sobre crema se ve sucia.
 
-1. **Borde de 1 px** semitransparente claro (`border-white/6`) que simula luz cenital.
-2. **Sombra difusa** `shadow-soft` (`0 12px 32px -12px rgba(0,0,0,.7)`) para despegar
-   del fondo.
-3. **Glow de color** `shadow-glow` — halo del color de la moneda al 25 %, solo en
-   hover o en elementos destacados. Es el recurso que da el punto "degen".
+1. **Borde de 1 px** `border-line` que define el canto de la tarjeta.
+2. **Sombra** `shadow-soft` — `0 1px 2px rgba(31,23,16,.04)` de contacto más
+   `0 8px 24px -14px rgba(31,23,16,.16)` de difusión.
+3. **`shadow-lift`** para elementos flotantes (menús, tooltips).
+4. **`shadow-glow`** — la difusión toma el color de la moneda, solo en hover de
+   tarjeta. Es el recurso que da el punto "degen".
 
-Los botones primarios llevan además un `inset` claro de 1 px arriba: simula un
-material plástico con brillo, no un rectángulo plano.
+Las tarjetas de moneda llevan además una **franja de 1 px del color de la marca**
+en el borde superior: sobre fondo claro el borde teñido solo no se distingue, y
+la franja identifica la moneda de un vistazo.
+
+Los botones primarios llevan un `inset` claro de 1 px arriba: simulan un material
+plástico con brillo, no un rectángulo plano.
 
 ## 6. Componentes
 
@@ -165,30 +180,37 @@ material plástico con brillo, no un rectángulo plano.
 
 | Variante | Fondo | Texto | Uso |
 | --- | --- | --- | --- |
-| `primary` | gradiente `hype` | `ink-950` | Acción principal, uno por vista |
-| `secondary` | `ink-700` + borde | `cream` | Acciones de apoyo |
-| `ghost` | transparente | `sand` | Terciaria, iconos |
-| `danger` | `down-soft` + borde | `down-500` | Borrar |
+| `primary` | gradiente `hype` | `ink` (oscuro) | Acción principal, uno por vista |
+| `secondary` | `surface` + borde | `ink` | Acciones de apoyo |
+| `ghost` | transparente | `ink-soft` | Terciaria, iconos |
+| `danger` | `down-soft` + borde | `down` | Borrar |
 
-Alturas: `sm` 32 px, `md` 40 px, `lg` 48 px. Siempre pill. En hover: `translateY(-1px)`
-+ glow; en active vuelve a `0`. Focus visible obligatorio con anillo `brand-400`.
+Alturas: `sm` 32 px, `md` 40 px, `lg` 48 px. Siempre pill. En hover:
+`translateY(-1px)` + brillo; en active vuelve a `0`. Focus visible obligatorio
+con anillo `brand`.
 
 ### Card
 
-`bg-ink-800` + borde `white/6` + `rounded-card` + `shadow-soft`. En hover (si es
-interactiva): borde teñido con el color de la moneda, `translateY(-2px)` y glow.
+`bg-surface` + borde `line` + `rounded-card` + `shadow-soft`. En hover (si es
+interactiva): borde del color de la moneda, `translateY(-2px)` y glow.
 Transición 180 ms `ease-out`.
 
 ### Input
 
-`bg-ink-700`, borde `white/8`, `rounded-input`, alto 44 px, placeholder en `dust`.
-En focus: borde `brand-500` + anillo de 3 px `brand-500/25`. Los errores usan
-`down-500` en borde **y** texto de ayuda (nunca solo color).
+`bg-sunken`, borde `line`, `rounded-input`, alto 44 px, placeholder en
+`ink-faint`. En focus: borde `brand` + anillo de 3 px `brand/25`. Los errores
+usan `down` en borde **y** texto de ayuda (nunca solo color).
 
 ### Badge de variación
 
-Pill compacta, `font-mono`, fondo `up-soft`/`down-soft`, texto `up-500`/`down-500`,
-con flecha ▲/▼ y signo explícito.
+Pill compacta, `font-mono`, fondo `up-soft`/`down-soft`, texto `up`/`down`, con
+flecha ▲/▼ y signo explícito.
+
+### Indicador "en vivo"
+
+Punto que late + etiqueta de estado + "hace X s". Tres estados: `live` (verde),
+`stale` (ámbar, reintentando) y `error` (rojo). Sin él, un número que se
+actualiza solo es indistinguible de uno congelado.
 
 ## 7. Movimiento
 
@@ -207,3 +229,19 @@ con flecha ▲/▼ y signo explícito.
 - Foco visible en todo elemento interactivo; nunca `outline: none` sin sustituto.
 - Los botones de icono llevan `aria-label`; el botón de like expone `aria-pressed`.
 - Objetivos táctiles ≥ 40 px de alto.
+
+---
+
+## 9. Formateo de cifras
+
+Solo se usa `Intl` para la **parte numérica**; el símbolo de moneda y el sufijo
+de escala se componen a mano en `src/lib/format.ts`.
+
+El motivo es concreto: `Intl.NumberFormat` con `style:"currency"` y
+`notation:"compact"` da resultados distintos en Node y en Chrome
+(`23,45 mil M US$` contra `23,45 mil MUS$`). Esa diferencia rompía la hidratación
+de React en todas las páginas con precios, además de leerse mal. Componer el
+formato a mano lo hace determinista entre motores.
+
+Los decimales se eligen según la magnitud, no fijos: PEPE cotiza a ~0,0000012 $ y
+con dos decimales se mostraría como `0,00 $`.

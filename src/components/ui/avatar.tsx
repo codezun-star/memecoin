@@ -8,10 +8,10 @@ const SIZES = {
 
 /** Colores de fondo del avatar por defecto, elegidos de forma estable a partir del nombre. */
 const FALLBACK_TINTS = [
-  "from-shiba to-shiba-deep",
-  "from-doge to-doge-deep",
-  "from-pepe to-pepe-deep",
-  "from-bonk to-bonk-deep",
+  "from-shiba to-shiba-ink",
+  "from-doge to-doge-ink",
+  "from-pepe to-pepe-ink",
+  "from-bonk to-bonk-ink",
 ];
 
 function tintFor(seed: string) {
@@ -32,7 +32,7 @@ export function Avatar({
   className?: string;
 }) {
   const base = cn(
-    "shrink-0 overflow-hidden rounded-full border border-white/10 object-cover",
+    "shrink-0 overflow-hidden rounded-full border border-line-strong object-cover",
     SIZES[size],
     className,
   );
@@ -49,7 +49,7 @@ export function Avatar({
       aria-hidden
       className={cn(
         base,
-        "grid place-items-center bg-gradient-to-br font-display font-bold text-ink-950",
+        "grid place-items-center bg-gradient-to-br font-display font-bold text-ink",
         tintFor(username),
       )}
     >
