@@ -4,7 +4,6 @@ import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/components/ui/button";
 import { TRACKED_COINS } from "@/lib/coins";
 import { getSessionUser } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export async function SiteHeader() {
   const session = await getSessionUser();
@@ -40,11 +39,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {!isSupabaseConfigured ? (
-            <span className="hidden rounded-full border border-doge/40 bg-doge-soft px-3 py-1 text-xs text-doge-ink sm:inline">
-              Supabase sin configurar
-            </span>
-          ) : session ? (
+          {session ? (
             <UserMenu
               username={session.profile?.username ?? "degen"}
               avatarUrl={session.profile?.avatar_url ?? null}
