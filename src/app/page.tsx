@@ -2,13 +2,11 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Flame, MessagesSquare, TrendingUp } from "lucide-react";
 
-import { CoinCard } from "@/components/coin-card";
-import { ChangeBadge } from "@/components/change-badge";
+import { LiveCoinGrid } from "@/components/live-coin-grid";
 import { Button } from "@/components/ui/button";
 import { getMarkets } from "@/lib/coingecko";
 import { getCommentCounts } from "@/lib/comments";
 import { TRACKED_COINS } from "@/lib/coins";
-import { formatCompact } from "@/lib/format";
 
 // Los precios se refrescan como mucho una vez por minuto (límite del tier público).
 export const revalidate = 60;
@@ -23,7 +21,7 @@ export default function HomePage() {
             <p className="eyebrow mb-1">El parqué</p>
             <h2 className="font-display text-display-md">Las cuatro grandes</h2>
           </div>
-          <p className="text-sm text-dust">Precios vía CoinGecko · se actualizan cada minuto</p>
+          <p className="text-sm text-ink-faint">Precios vía CoinGecko · se actualizan solos cada 20 s</p>
         </div>
 
         <Suspense fallback={<CoinGridSkeleton />}>
@@ -37,7 +35,7 @@ export default function HomePage() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-white/[0.06]">
+    <section className="relative overflow-hidden border-b border-line">
       {/* Manchas de color de las cuatro monedas, muy difusas: dan la identidad
           cromática del producto sin competir con el texto. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-60">
@@ -48,8 +46,8 @@ function Hero() {
       </div>
 
       <div className="shell relative py-16 md:py-24">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-ink-800/70 px-3 py-1 text-xs text-sand backdrop-blur">
-          <Flame className="size-3.5 text-brand-500" aria-hidden />
+        <span className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface/70 px-3 py-1 text-xs text-ink-soft backdrop-blur">
+          <Flame className="size-3.5 text-brand-strong" aria-hidden />
           Precios en vivo + foro de la comunidad
         </span>
 
@@ -60,7 +58,7 @@ function Hero() {
           <br className="hidden sm:block" /> y la gente que las defiende.
         </h1>
 
-        <p className="mt-5 max-w-xl text-lg text-sand">
+        <p className="mt-5 max-w-xl text-lg text-ink-soft">
           Dogecoin, Shiba Inu, Pepe y Bonk en una sola pantalla. Mira el gráfico, lee lo que dice
           la comunidad y suelta tu tesis.
         </p>
@@ -84,65 +82,16 @@ async function CoinGrid() {
   // Precios y contadores de comentarios en paralelo: son fuentes independientes.
   const [markets, commentCounts] = await Promise.all([getMarkets(), getCommentCounts()]);
 
-  const marketById = new Map((markets ?? []).map((m) => [m.id, m]));
-
-  const totalCap = (markets ?? []).reduce((sum, m) => sum + (m.market_cap ?? 0), 0);
-
-  let best: { id: string; change: number } | null = null;
-  for (const market of markets ?? []) {
-    const change = market.price_change_percentage_24h;
-    if (change === null || change === undefined) continue;
-    if (!best || change > best.change) best = { id: market.id, change };
-  }
-  const bestCoin = best ? TRACKED_COINS.find((c) => c.id === best.id) : null;
-
-  return (
-    <div className="space-y-6">
-      {!markets && (
-        <p
-          role="status"
-          className="rounded-input border border-doge/30 bg-doge-soft px-4 py-3 text-sm text-doge"
-        >
-          No hemos podido cargar los precios de CoinGecko (probablemente un límite de peticiones).
-          El resto de la web funciona con normalidad; vuelve a intentarlo en un minuto.
-        </p>
-      )}
-
-      {markets && markets.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-dust">
-          <span>
-            Capitalización combinada{" "}
-            <span className="tabular text-cream">{formatCompact(totalCap)}</span>
-          </span>
-          {bestCoin && best && (
-            <span className="inline-flex items-center gap-2">
-              Mejor 24 h
-              <span className="text-cream">{bestCoin.name}</span>
-              <ChangeBadge value={best.change} size="sm" />
-            </span>
-          )}
-        </div>
-      )}
-
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {TRACKED_COINS.map((coin) => (
-          <CoinCard
-            key={coin.id}
-            coin={coin}
-            market={marketById.get(coin.id) ?? null}
-            commentCount={commentCounts[coin.id]}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  // A partir de aquí manda el cliente: sondea /api/markets y mantiene los
+  // precios al día sin recargar la página.
+  return <LiveCoinGrid initialMarkets={markets} commentCounts={commentCounts} />;
 }
 
 function CoinGridSkeleton() {
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       {TRACKED_COINS.map((coin) => (
-        <div key={coin.id} className="surface space-y-4 p-5 md:p-6">
+        <div key={coin.id} className="surface-card space-y-4 p-5 md:p-6">
           <div className="flex items-center gap-3">
             <div className="skeleton size-11 rounded-full" />
             <div className="space-y-2">
@@ -182,12 +131,12 @@ function ValueProps() {
     <section className="shell pt-16">
       <div className="grid gap-5 md:grid-cols-3">
         {items.map(({ icon: Icon, title, body }) => (
-          <div key={title} className="surface p-6">
-            <span className="mb-4 grid size-10 place-items-center rounded-full bg-hype-soft text-brand-500">
+          <div key={title} className="surface-card p-6">
+            <span className="mb-4 grid size-10 place-items-center rounded-full bg-hype-soft text-brand-strong">
               <Icon className="size-5" aria-hidden />
             </span>
             <h3 className="font-display text-lg font-bold">{title}</h3>
-            <p className="mt-1.5 text-sm text-sand">{body}</p>
+            <p className="mt-1.5 text-sm text-ink-soft">{body}</p>
           </div>
         ))}
       </div>

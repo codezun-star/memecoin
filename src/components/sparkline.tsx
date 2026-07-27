@@ -22,7 +22,7 @@ export function Sparkline({
   if (!data || data.length < 2) {
     return (
       <div
-        className={cn("flex items-center justify-center text-xs text-dust", className)}
+        className={cn("flex items-center justify-center text-xs text-ink-faint", className)}
         style={{ height }}
       >
         Sin datos de tendencia
@@ -49,8 +49,9 @@ export function Sparkline({
   const line = points.map((v, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(2)},${toY(v).toFixed(2)}`).join(" ");
   const area = `${line} L${width},${height} L0,${height} Z`;
 
+  // Mismos tokens up/down/flat del tema claro (tailwind.config.ts)
   const stroke =
-    direction === "up" ? "#3DDC84" : direction === "down" ? "#FF4D6A" : "#8C7C6C";
+    direction === "up" ? "#0B7F45" : direction === "down" ? "#CE1F45" : "#7C6957";
   const gradientId = `spark-${direction}`;
 
   return (

@@ -1,26 +1,28 @@
 # 🐕 Memecoin Plaza
 
-MVP de una web comunitaria para meme coins: precios en vivo + foro. Un cruce
-entre CoinGecko y un foro, centrado en **Dogecoin, Shiba Inu, Pepe y Bonk**.
+Web comunitaria para meme coins: precios en tiempo real + foro. Un cruce entre
+CoinGecko y un foro, centrado en **Dogecoin, Shiba Inu, Pepe y Bonk**.
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS · Supabase · listo para Vercel.
+**Producción:** https://memecoin.codezun.com
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS · Supabase · Vercel.
 
 ---
 
-## Qué incluye el MVP
+## Qué incluye
 
 | Funcionalidad | Estado |
 | --- | --- |
 | Home con tarjetas de las 4 monedas (logo, precio, % 24 h, mini gráfico) | ✅ |
-| Página de detalle por moneda (precio, capitalización, volumen, máx./mín., ATH) | ✅ |
-| Gráfico de precio con rangos 24 h / 7 d / 30 d / 90 d / 1 año | ✅ |
+| **Precios en tiempo real**, refrescándose solos cada 20 s sin recargar | ✅ |
+| Página de detalle (precio, capitalización, volumen, máx./mín., ATH) | ✅ |
+| Gráfico con rangos 24 h / 7 d / 30 d / 90 d / 1 año, rejilla, tooltip y línea de referencia | ✅ |
 | Registro y login con email + contraseña | ✅ |
-| Login con Google (OAuth) | ✅ |
+| Login con Google / Discord | 🔌 Código listo, **sin activar** (ver más abajo) |
 | Perfil de usuario (username, avatar, bio) | ✅ |
 | Hilo de comentarios por moneda, con respuestas de un nivel | ✅ |
 | Likes en comentarios (con actualización optimista) | ✅ |
 | Borrado de los comentarios propios | ✅ |
-| Esquema SQL con RLS, triggers y seed | ✅ |
+| Esquema SQL con RLS, triggers, permisos y seed | ✅ |
 
 ---
 
@@ -33,15 +35,13 @@ npm install
 cp .env.example .env.local
 ```
 
-La web **arranca sin configurar nada**: verás los precios y el diseño completo,
-y las zonas de comunidad mostrarán un aviso de "Supabase sin configurar". Para
-tener foro y cuentas, sigue con el paso 2.
+La web **arranca sin configurar nada**: verás el diseño completo y las zonas de
+comunidad mostrarán un aviso de "Supabase sin configurar".
 
-### 2. Crear el proyecto de Supabase
+### 2. Supabase
 
-1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. En **Project Settings → API** copia la *Project URL* y la *anon public key*.
-3. Pégalas en `.env.local`:
+En **Project Settings → API** copia la *Project URL* y la *anon public key* a
+`.env.local`:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
@@ -50,90 +50,130 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 ### 3. Ejecutar la migración
 
-En el panel de Supabase: **SQL Editor → New query**, pega el contenido de
+**SQL Editor → New query**, pega
 [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) y ejecútalo.
 
-Con la CLI de Supabase sería:
+> **Si ya la habías ejecutado antes, vuelve a ejecutarla.** Es idempotente y se le
+> han añadido dos cosas necesarias: los `GRANT` explícitos a `anon` y
+> `authenticated` (sin ellos, según cómo esté el proyecto, las políticas de RLS
+> pueden quedar tapadas por un "permission denied" a nivel de tabla) y la columna
+> `coins.accent_ink`.
 
-```bash
-supabase link --project-ref <tu-ref>
-supabase db push
-```
+### 4. URLs de autenticación
 
-Esto crea las tablas, las políticas de RLS, los triggers y mete las 4 monedas.
+En Supabase → **Authentication → URL Configuration**:
 
-### 4. Arrancar
+- *Site URL*: `https://memecoin.codezun.com`
+- *Redirect URLs*: `https://memecoin.codezun.com/**` y `http://localhost:3000/**`
+
+Hace falta aunque no uses OAuth: el enlace de confirmación de email vuelve por ahí.
+
+### 5. Arrancar
 
 ```bash
 npm run dev
 ```
 
-→ http://localhost:3000
+---
+
+## Datos en tiempo real
+
+Los precios no se quedan congelados en el render del servidor:
+
+```
+CoinGecko  ←(máx. 1 llamada/15 s)─  /api/markets  ←(sondeo/20 s)─  navegador
+```
+
+- **Primer pintado desde el servidor.** La página llega con precios ya puestos
+  (bueno para SEO y para no ver huecos), y a partir de ahí el cliente toma el relevo.
+- **`/api/markets` agrupa las llamadas.** Tiene un throttle en memoria de 15 s y
+  colapsa las peticiones concurrentes en una sola: da igual que haya 1 pestaña
+  abierta o 200, CoinGecko recibe como mucho una llamada cada 15 s. Es lo que
+  permite vivir dentro del tier gratuito (~30 peticiones/minuto).
+- **El navegador sondea cada 20 s**, se para cuando la pestaña no está visible y
+  refresca al volver.
+- **Un fallo no vacía la pantalla.** Si CoinGecko corta, se sigue mostrando el
+  último dato bueno y el indicador pasa a "Reintentando".
+- **Se nota que está vivo**: el precio destella en verde o rojo al cambiar, y hay
+  un indicador con punto latiente y "hace X s".
+
+### Validación de los datos
+
+Todo lo que devuelve CoinGecko pasa por `normalizeMarket` / `normalizeChart`
+antes de tocar la UI: se descartan monedas que no trackeamos, se aceptan números
+que lleguen como string y **cualquier campo corrupto se convierte a `null` en vez
+de propagar `NaN`** hasta la pantalla. Hay 15 pruebas cubriendo esto:
+
+```bash
+npm test
+```
 
 ---
 
-## Configuración opcional
+## Activar Google o Discord más adelante
 
-### Google OAuth
+El MVP entra solo con email + contraseña, pero **todo el camino de OAuth está
+escrito**: la acción de servidor, el callback que intercambia el código por
+sesión y la creación automática de perfil con el nombre y el avatar del proveedor.
 
-1. En Google Cloud Console crea unas credenciales OAuth 2.0 de tipo *Web application*.
-2. En **URIs de redirección autorizados** añade:
-   `https://<tu-proyecto>.supabase.co/auth/v1/callback`
-3. En Supabase: **Authentication → Providers → Google**, activa el proveedor y pega
-   el Client ID y el Client Secret.
-4. En **Authentication → URL Configuration** añade tus URLs de redirección
-   (`http://localhost:3000/**` y la de producción).
+Para activar uno:
 
-El botón de Google ya está en las pantallas de login y registro; en cuanto el
-proveedor esté activo, funciona.
+1. Supabase → **Authentication → Providers**, activa el proveedor y pega client
+   id/secret. La URI de redirección que pide el proveedor es
+   `https://<tu-proyecto>.supabase.co/auth/v1/callback`.
+2. Añade su id a `ENABLED_PROVIDERS` en
+   [`src/lib/auth-providers.ts`](src/lib/auth-providers.ts):
 
-### CoinGecko
+   ```ts
+   export const ENABLED_PROVIDERS: OAuthProviderId[] = ["google"];
+   ```
 
-Funciona sin API key con el tier público (~30 peticiones/minuto). Como todas las
-llamadas pasan por el cache ISR de Next (60 s los precios, 300 s los gráficos), da
-de sobra para desarrollo y tráfico bajo.
+Ya está. El botón aparece solo en `/login` y `/signup`. **No hay que tocar ningún
+componente.** Mientras la lista esté vacía, la acción de servidor rechaza
+cualquier intento de OAuth aunque alguien fuerce el formulario.
 
-Si te quedas corto, saca una *Demo API key* gratuita y añádela:
+---
 
-```bash
-COINGECKO_API_KEY=CG-xxxxxxxx
-```
+## CoinGecko
 
-Si CoinGecko falla o corta por límite de peticiones, la web **no se rompe**:
-muestra un aviso y sigue funcionando con el resto (foro incluido).
+Funciona sin API key con el tier público. Si te quedas corto, saca una *Demo API
+key* gratuita y añade `COINGECKO_API_KEY=CG-xxxx`.
+
+Si CoinGecko falla, la web **no se rompe**: muestra un aviso y el foro sigue
+funcionando.
 
 ---
 
 ## Despliegue en Vercel
 
-1. Importa el repositorio en Vercel.
-2. Añade las variables de entorno: `NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` y, si la usas, `COINGECKO_API_KEY`.
-3. Deploy. No hace falta configurar nada más: la URL del sitio se detecta sola
-   a partir de las variables que inyecta Vercel.
-4. En Supabase → **Authentication → URL Configuration**, añade tu dominio de
-   producción a *Site URL* y a *Redirect URLs*.
+1. Importa el repositorio.
+2. Variables de entorno: `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL=https://memecoin.codezun.com`
+   y, si la usas, `COINGECKO_API_KEY`.
+3. Apunta el dominio `memecoin.codezun.com` al proyecto en **Settings → Domains**.
 
 ---
 
 ## Diseño
 
-El sistema de diseño está definido **antes** que las pantallas y documentado en
-**[DESIGN.md](DESIGN.md)**: paleta, tipografía, escala de espaciado, radios,
-profundidad, componentes, movimiento y accesibilidad.
+Sistema de diseño definido **antes** que las pantallas y documentado en
+**[DESIGN.md](DESIGN.md)**. Tokens en [`tailwind.config.ts`](tailwind.config.ts) y
+[`src/app/globals.css`](src/app/globals.css). Resumen:
 
-Los tokens viven en [`tailwind.config.ts`](tailwind.config.ts) y
-[`src/app/globals.css`](src/app/globals.css). Resumen rápido:
-
-- **Tema oscuro único** sobre carbón cálido — los cuatro colores de marca son
-  cálidos y saturados, y sobre fondo claro se apagan.
-- **Un color por moneda** (naranja Shiba, dorado Doge, verde Pepe, ámbar Bonk)
-  que viaja como variable CSS `--coin-accent` y tiñe tarjetas, glows y acentos.
+- **Tema claro sobre crema cálida** (`#FFFBF3`), no blanco puro: sobre blanco los
+  naranjas y dorados de las cuatro marcas flotan sin contexto; sobre crema entran
+  en la misma familia de temperatura.
+- **Dos variantes por moneda.** La viva (`accent`) para logos, franjas y rellenos;
+  la de contraste AA (`accentInk`) para texto y trazos del gráfico. Sobre fondo
+  claro un amarillo o un verde vivos no se leen como texto. Ambas viajan como
+  variables CSS (`--coin-accent`, `--coin-accent-ink`).
+- **Contrastes verificados, no estimados.** Todos los colores de texto están
+  calculados a WCAG AA (≥ 4,5:1); tres tokens se oscurecieron porque no llegaban.
 - **Tres tipografías con un trabajo cada una**: Bricolage Grotesque (titulares),
   Inter (interfaz), JetBrains Mono (cifras tabulares, para que los precios no
   bailen al actualizarse).
-- **Verde y rojo reservados** para la dirección del precio, siempre acompañados
-  de signo y flecha para no depender solo del color.
+- **Verde y rojo reservados** a la dirección del precio, siempre con signo y
+  flecha. Por eso el botón de "me gusta" es naranja y no verde.
 
 ---
 
@@ -154,25 +194,36 @@ coins
 
 | Tabla | Para qué | Notas |
 | --- | --- | --- |
-| `profiles` | Datos públicos del usuario | Espejo de `auth.users`; el username es único sin distinguir mayúsculas |
-| `coins` | Catálogo de monedas | La PK es el id de CoinGecko, así que no hace falta tabla de mapeo. Los precios **no** se guardan: son volátiles y se piden a la API |
+| `profiles` | Datos públicos del usuario | Espejo de `auth.users`; username único sin distinguir mayúsculas |
+| `coins` | Catálogo de monedas | La PK es el id de CoinGecko, así que no hace falta tabla de mapeo. Los precios **no** se guardan: son volátiles |
 | `comments` | Hilo por moneda | `parent_id` para respuestas de un nivel (lo fuerza un trigger), `like_count` desnormalizado, borrado suave si tiene respuestas |
 | `comment_likes` | Likes | PK compuesta `(comment_id, user_id)`: el doble like lo impide la base de datos, no la app |
 
-**Row Level Security activo en las cuatro tablas.** Todo se lee en público
-(la web es consultable sin cuenta); escribir requiere sesión y solo sobre lo
-propio. `coins` es de solo lectura desde el cliente.
+**RLS activa en las cuatro tablas.** Todo se lee en público; escribir requiere
+sesión y solo sobre lo propio. `coins` es de solo lectura desde el cliente.
 
 Decisiones que conviene conocer:
 
-- **`like_count` desnormalizado**, mantenido por un trigger. Evita un `count()`
-  por comentario al pintar el hilo.
+- **`like_count` desnormalizado**, mantenido por trigger. Evita un `count()` por
+  comentario al pintar el hilo.
 - **Borrado suave selectivo**: si el comentario tiene respuestas se marca como
-  borrado (borrarlo de verdad se llevaría por delante las respuestas de otros por
-  el `on delete cascade`); si no las tiene, se borra del todo.
-- **Perfil automático al registrarse**: el trigger `handle_new_user` genera el
-  username a partir de los metadatos del registro, del nombre de Google o del
-  email, y le añade un sufijo si ya está cogido.
+  borrado (borrarlo de verdad se llevaría las respuestas de otros por el
+  `on delete cascade`); si no las tiene, se borra del todo.
+- **Perfil automático al registrarse**: `handle_new_user` genera el username a
+  partir de los metadatos, lo sanea (quita espacios y acentos) y le añade un
+  sufijo si ya está cogido.
+
+El esquema está probado contra un Postgres real. El arnés está en el repo
+([`supabase/tests/schema_test.sql`](supabase/tests/schema_test.sql)) y cubre 19
+comprobaciones de triggers, constraints y políticas RLS: que un usuario no pueda
+borrar comentarios ajenos ni suplantar a otro, que `anon` pueda leer pero no
+escribir, que no se puedan anidar dos niveles de respuestas, que el contador de
+likes cuadre, etc.
+
+```bash
+createdb memecoin_test
+psql -d memecoin_test -f supabase/tests/schema_test.sql
+```
 
 ---
 
@@ -181,26 +232,29 @@ Decisiones que conviene conocer:
 ```
 src/
 ├── app/
-│   ├── page.tsx                 # Home: hero + grid de monedas
+│   ├── page.tsx                 # Home: hero + grid de monedas en vivo
 │   ├── coin/[slug]/page.tsx     # Detalle: datos, gráfico y debate
+│   ├── api/markets/route.ts     # Endpoint de sondeo con throttle compartido
 │   ├── login/ · signup/         # Autenticación
 │   ├── profile/                 # Perfil editable
 │   ├── auth/
-│   │   ├── actions.ts           # Server actions de login/registro/logout
+│   │   ├── actions.ts           # Server actions de login/registro/logout/OAuth
 │   │   └── callback/route.ts    # Retorno de OAuth y confirmación por email
 │   └── actions/comments.ts      # Server actions de comentarios y likes
 ├── components/
 │   ├── ui/                      # Primitivas del sistema de diseño
 │   ├── comments/                # Formulario, item del hilo, botón de like
-│   ├── coin-card.tsx · sparkline.tsx · price-chart.tsx
-│   └── site-header.tsx · site-footer.tsx
+│   ├── live-*.tsx               # Sondeo, indicador y precio con destello
+│   ├── coin-live.tsx            # Cabecera, gráfico y stats en vivo
+│   └── coin-card.tsx · sparkline.tsx · price-chart.tsx
 ├── lib/
-│   ├── coingecko.ts             # Cliente de la API de precios
-│   ├── coins.ts                 # Registro de las monedas trackeadas
-│   ├── comments.ts              # Consultas del hilo
-│   ├── format.ts                # Formateo de cifras
+│   ├── coingecko.ts             # Cliente + normalización de la API de precios
+│   ├── coingecko.test.ts        # Pruebas del pipeline de datos
+│   ├── use-live-markets.ts      # Hook de sondeo
+│   ├── auth-providers.ts        # Configuración de OAuth (vacía = solo email)
+│   ├── coins.ts · comments.ts · format.ts
 │   └── supabase/                # Clientes de browser, servidor y middleware
-├── types/database.ts            # Tipos del esquema
+├── types/database.ts
 └── middleware.ts                # Refresco de sesión
 supabase/migrations/0001_init.sql
 ```
@@ -210,7 +264,7 @@ supabase/migrations/0001_init.sql
 1. Añade la entrada en `src/lib/coins.ts` (el `id` es el de CoinGecko).
 2. Añade la fila equivalente en el `insert` de la migración.
 
-No hay que tocar ninguna pantalla: home, detalle y foro salen del registro.
+No hay que tocar ninguna pantalla.
 
 ---
 
@@ -220,13 +274,14 @@ No hay que tocar ninguna pantalla: home, detalle y foro salen del registro.
 npm run dev        # desarrollo
 npm run build      # build de producción
 npm run start      # servir el build
+npm test           # pruebas del pipeline de datos
 npm run lint       # ESLint
 npm run typecheck  # TypeScript sin emitir
 ```
 
 ---
 
-## Ideas para después del MVP
+## Ideas para después
 
 - Subida de avatares a Supabase Storage (hoy es una URL).
 - Realtime de Supabase para que los comentarios nuevos aparezcan sin recargar.

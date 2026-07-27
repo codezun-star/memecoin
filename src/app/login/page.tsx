@@ -24,11 +24,13 @@ export default async function LoginPage({
         {error ? (
           <p
             role="alert"
-            className="rounded-input border border-down-500/30 bg-down-soft px-4 py-3 text-sm text-down-500"
+            className="rounded-input border border-down/30 bg-down-soft px-4 py-3 text-sm text-down"
           >
             {error === "supabase"
               ? "Supabase no está configurado en este entorno."
-              : "No hemos podido completar el acceso. Inténtalo otra vez."}
+              : error === "oauth_disabled"
+                ? "Ese método de acceso no está activado. Entra con tu email y contraseña."
+                : "No hemos podido completar el acceso. Inténtalo otra vez."}
           </p>
         ) : null}
         <AuthForm mode="login" next={safeNext} />

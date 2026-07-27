@@ -63,12 +63,17 @@ create table if not exists public.coins (
   slug        text not null unique,
   symbol      text not null,
   name        text not null,
-  accent      text not null,          -- color de marca (hex), ver DESIGN.md
+  accent      text not null,          -- color de marca vivo (hex), ver DESIGN.md
+  accent_ink  text,                   -- variante con contraste AA sobre fondo claro
   tagline     text,
   blurb       text,
   sort_order  integer not null default 0,
   created_at  timestamptz not null default now()
 );
+
+-- Para bases creadas antes de que existiera la columna: `create table if not
+-- exists` no añade columnas nuevas, así que se declara aparte.
+alter table public.coins add column if not exists accent_ink text;
 
 -- ============================================================================
 -- comments — hilo de foro por moneda
@@ -241,6 +246,24 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ============================================================================
+-- Permisos de tabla
+--
+-- Supabase suele conceder esto solo con ALTER DEFAULT PRIVILEGES, pero
+-- declararlo aquí hace la migración autocontenida: funciona igual en un
+-- proyecto nuevo, en uno con los privilegios por defecto endurecidos o en un
+-- Postgres normal. Los GRANT abren la tabla; quien decide fila a fila es la RLS.
+-- ============================================================================
+grant usage on schema public to anon, authenticated;
+
+grant select                   on public.coins         to anon, authenticated;
+grant select                   on public.profiles      to anon, authenticated;
+grant insert, update           on public.profiles      to authenticated;
+grant select                   on public.comments      to anon, authenticated;
+grant insert, update, delete   on public.comments      to authenticated;
+grant select                   on public.comment_likes to anon, authenticated;
+grant insert, delete           on public.comment_likes to authenticated;
+
+-- ============================================================================
 -- Row Level Security
 --
 -- Todo se lee en público (la web es consultable sin cuenta); escribir requiere
@@ -326,21 +349,21 @@ create policy "Quitar solo el like propio"
 -- Seed: las 4 monedas del MVP
 -- Debe coincidir con src/lib/coins.ts
 -- ============================================================================
-insert into public.coins (id, slug, symbol, name, accent, tagline, blurb, sort_order)
+insert into public.coins (id, slug, symbol, name, accent, accent_ink, tagline, blurb, sort_order)
 values
-  ('dogecoin', 'dogecoin', 'DOGE', 'Dogecoin', '#F5C542',
+  ('dogecoin', 'dogecoin', 'DOGE', 'Dogecoin', '#F5C542', '#8A6B00',
    'El abuelo del meme',
    'Nacida en 2013 como una parodia de Bitcoin, Dogecoin acabó siendo la meme coin más longeva y reconocible del mercado.',
    1),
-  ('shiba-inu', 'shiba-inu', 'SHIB', 'Shiba Inu', '#FF7A18',
+  ('shiba-inu', 'shiba-inu', 'SHIB', 'Shiba Inu', '#FF7A18', '#C4500A',
    'El asesino de Doge',
    'Token ERC-20 lanzado en 2020 con un ecosistema propio (ShibaSwap, Shibarium) construido por una comunidad enorme.',
    2),
-  ('pepe', 'pepe', 'PEPE', 'Pepe', '#4ADE80',
+  ('pepe', 'pepe', 'PEPE', 'Pepe', '#4ADE80', '#14803F',
    'Meme puro, sin utilidad',
    'Lanzada en 2023 sin impuestos ni roadmap y presumiendo de ello: la tesis es el meme y nada más.',
    3),
-  ('bonk', 'bonk', 'BONK', 'Bonk', '#FFB627',
+  ('bonk', 'bonk', 'BONK', 'Bonk', '#FFB627', '#9A6300',
    'El perro de Solana',
    'La meme coin que reactivó Solana tras el colapso de FTX, repartida por airdrop a la comunidad del ecosistema.',
    4)
@@ -349,6 +372,7 @@ on conflict (id) do update set
   symbol     = excluded.symbol,
   name       = excluded.name,
   accent     = excluded.accent,
+  accent_ink = excluded.accent_ink,
   tagline    = excluded.tagline,
   blurb      = excluded.blurb,
   sort_order = excluded.sort_order;

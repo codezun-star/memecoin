@@ -38,14 +38,14 @@ export function ProfileForm({
         <Avatar username={username || "??"} avatarUrl={avatarUrl || null} size="lg" />
         <div>
           <p className="font-display text-lg font-bold">{username || "sin nombre"}</p>
-          <p className="text-sm text-dust">Así te verá el resto de la comunidad.</p>
+          <p className="text-sm text-ink-faint">Así te verá el resto de la comunidad.</p>
         </div>
       </div>
 
       {state.message ? (
         <p
           role="status"
-          className="rounded-input border border-up-500/30 bg-up-soft px-4 py-3 text-sm text-up-500"
+          className="rounded-input border border-up/30 bg-up-soft px-4 py-3 text-sm text-up"
         >
           {state.message}
         </p>
@@ -54,7 +54,7 @@ export function ProfileForm({
       {state.error ? (
         <p
           role="alert"
-          className="rounded-input border border-down-500/30 bg-down-soft px-4 py-3 text-sm text-down-500"
+          className="rounded-input border border-down/30 bg-down-soft px-4 py-3 text-sm text-down"
         >
           {state.error}
         </p>

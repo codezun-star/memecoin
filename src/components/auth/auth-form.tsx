@@ -7,11 +7,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import {
-  signInWithGoogle,
+  signInWithOAuth,
   signInWithPassword,
   signUpWithPassword,
   type AuthState,
 } from "@/app/auth/actions";
+import { AVAILABLE_PROVIDERS, ENABLED_PROVIDERS } from "@/lib/auth-providers";
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
@@ -22,13 +23,11 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
   );
 }
 
-function GoogleButton({ next }: { next: string }) {
+function ProviderButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="secondary" size="lg" loading={pending} className="w-full">
-      <input type="hidden" name="next" value={next} />
-      <GoogleIcon />
-      Continuar con Google
+      Continuar con {label}
     </Button>
   );
 }
@@ -39,12 +38,12 @@ export function AuthForm({ mode, next = "/" }: { mode: "login" | "signup"; next?
   const [state, formAction] = useActionState<AuthState, FormData>(action, {});
 
   return (
-    <div className="surface w-full max-w-md p-6 md:p-8">
+    <div className="surface-card w-full max-w-md p-6 md:p-8">
       <div className="mb-6 space-y-1.5">
         <h1 className="font-display text-display-md">
           {isSignup ? "Únete a la plaza" : "Bienvenido de vuelta"}
         </h1>
-        <p className="text-sm text-sand">
+        <p className="text-sm text-ink-soft">
           {isSignup
             ? "Crea tu cuenta para comentar y dar likes en los hilos."
             : "Entra para seguir el debate donde lo dejaste."}
@@ -54,7 +53,7 @@ export function AuthForm({ mode, next = "/" }: { mode: "login" | "signup"; next?
       {state.message ? (
         <p
           role="status"
-          className="mb-4 rounded-input border border-up-500/30 bg-up-soft px-4 py-3 text-sm text-up-500"
+          className="mb-4 rounded-input border border-up/30 bg-up-soft px-4 py-3 text-sm text-up"
         >
           {state.message}
         </p>
@@ -63,7 +62,7 @@ export function AuthForm({ mode, next = "/" }: { mode: "login" | "signup"; next?
       {state.error ? (
         <p
           role="alert"
-          className="mb-4 rounded-input border border-down-500/30 bg-down-soft px-4 py-3 text-sm text-down-500"
+          className="mb-4 rounded-input border border-down/30 bg-down-soft px-4 py-3 text-sm text-down"
         >
           {state.error}
         </p>
@@ -119,46 +118,37 @@ export function AuthForm({ mode, next = "/" }: { mode: "login" | "signup"; next?
         <SubmitButton>{isSignup ? "Crear cuenta" : "Entrar"}</SubmitButton>
       </form>
 
-      <div className="my-5 flex items-center gap-3 text-xs text-dust">
-        <span className="h-px flex-1 bg-white/[0.08]" />o<span className="h-px flex-1 bg-white/[0.08]" />
-      </div>
+      {/* Hoy no se pinta nada: ENABLED_PROVIDERS va vacío a propósito. En cuanto
+          se añada un proveedor en src/lib/auth-providers.ts, su botón aparece
+          aquí solo. */}
+      {ENABLED_PROVIDERS.length > 0 && (
+        <>
+          <div className="my-5 flex items-center gap-3 text-xs text-ink-faint">
+            <span className="h-px flex-1 bg-line" />o
+            <span className="h-px flex-1 bg-line" />
+          </div>
 
-      <form action={signInWithGoogle}>
-        <GoogleButton next={next} />
-      </form>
+          <div className="space-y-2">
+            {ENABLED_PROVIDERS.map((id) => (
+              <form key={id} action={signInWithOAuth}>
+                <input type="hidden" name="provider" value={id} />
+                <input type="hidden" name="next" value={next} />
+                <ProviderButton label={AVAILABLE_PROVIDERS[id].label} />
+              </form>
+            ))}
+          </div>
+        </>
+      )}
 
-      <p className="mt-6 text-center text-sm text-sand">
+      <p className="mt-6 text-center text-sm text-ink-soft">
         {isSignup ? "¿Ya tienes cuenta? " : "¿Aún no tienes cuenta? "}
         <Link
           href={isSignup ? "/login" : "/signup"}
-          className="font-medium text-brand-400 underline-offset-4 hover:underline"
+          className="font-medium text-brand-strong underline-offset-4 hover:underline"
         >
           {isSignup ? "Entra" : "Créala gratis"}
         </Link>
       </p>
     </div>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M23.06 12.25c0-.85-.08-1.67-.22-2.45H12v4.64h6.2a5.3 5.3 0 0 1-2.3 3.48v2.9h3.72c2.17-2 3.44-4.95 3.44-8.57z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23.5c3.1 0 5.7-1.03 7.62-2.78l-3.72-2.9c-1.03.7-2.35 1.11-3.9 1.11-3 0-5.54-2.02-6.45-4.74H1.7v2.98A11.5 11.5 0 0 0 12 23.5z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.55 14.19a6.9 6.9 0 0 1 0-4.38V6.83H1.7a11.5 11.5 0 0 0 0 10.34l3.85-2.98z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.77c1.69 0 3.2.58 4.4 1.72l3.3-3.3C17.7 1.28 15.1.25 12 .25A11.5 11.5 0 0 0 1.7 6.83l3.85 2.98C6.46 7.09 9 4.77 12 4.77z"
-      />
-    </svg>
   );
 }

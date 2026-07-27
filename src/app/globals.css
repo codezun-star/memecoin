@@ -4,15 +4,18 @@
 
 @layer base {
   :root {
-    /* Acento de la moneda activa. Los componentes genéricos leen esta variable
-       para teñirse solos, sin condicionales por moneda. Ver DESIGN.md §2.2 */
-    --coin-accent: #ff8a1f;
-    --coin-accent-soft: rgba(255, 138, 31, 0.12);
-    --coin-accent-deep: #b44a00;
+    color-scheme: light;
+
+    /* Acento de la moneda activa. Los componentes genéricos leen estas
+       variables para teñirse solos, sin condicionales por moneda.
+       `-ink` es la variante con contraste AA, para texto y trazos. */
+    --coin-accent: #ff7a18;
+    --coin-accent-ink: #c4500a;
+    --coin-accent-soft: rgba(255, 122, 24, 0.1);
   }
 
   * {
-    @apply border-ink-600;
+    @apply border-line;
   }
 
   html {
@@ -20,12 +23,15 @@
   }
 
   body {
-    @apply bg-ink-900 text-cream font-sans antialiased;
-    /* Dos focos cálidos muy difusos: evitan que el fondo oscuro se lea como
-       un plano muerto sin añadir ruido detrás del texto. */
+    @apply bg-canvas text-ink font-sans antialiased;
+    /* Cuatro manchas muy diluidas, una por moneda: dan el aire "meme" a la
+       crema sin ensuciar el fondo detrás del texto. */
     background-image:
-      radial-gradient(60rem 40rem at 12% -8%, rgba(255, 122, 24, 0.1), transparent 60%),
-      radial-gradient(50rem 36rem at 92% 4%, rgba(74, 222, 128, 0.07), transparent 60%);
+      radial-gradient(52rem 34rem at 8% -10%, rgba(255, 122, 24, 0.1), transparent 62%),
+      radial-gradient(44rem 30rem at 38% -14%, rgba(245, 197, 66, 0.13), transparent 62%),
+      radial-gradient(46rem 32rem at 72% -12%, rgba(74, 222, 128, 0.11), transparent 62%),
+      radial-gradient(44rem 30rem at 100% -8%, rgba(255, 182, 39, 0.12), transparent 62%);
+    background-repeat: no-repeat;
     background-attachment: fixed;
   }
 
@@ -36,11 +42,11 @@
   }
 
   ::selection {
-    @apply bg-brand-500/30 text-cream;
+    @apply bg-brand/25 text-ink;
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-400 ring-offset-2 ring-offset-ink-900;
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-canvas;
   }
 
   ::-webkit-scrollbar {
@@ -48,13 +54,13 @@
     height: 10px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-ink-900;
+    @apply bg-sunken;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-ink-600;
+    @apply rounded-full bg-line-strong;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-ink-500;
+    @apply bg-ink-faint;
   }
 }
 
@@ -64,12 +70,12 @@
   }
 
   /* Superficie base de tarjetas y paneles (DESIGN.md §5) */
-  .surface {
-    @apply rounded-card border border-white/[0.06] bg-ink-800 shadow-soft;
+  .surface-card {
+    @apply rounded-card border border-line bg-surface shadow-soft;
   }
 
-  .surface-raised {
-    @apply rounded-card border border-white/[0.06] bg-ink-700;
+  .surface-sunken {
+    @apply rounded-card border border-line bg-sunken;
   }
 
   /* Titular con relleno degradado */
@@ -78,15 +84,15 @@
   }
 
   .eyebrow {
-    @apply text-eyebrow uppercase text-dust;
+    @apply text-eyebrow uppercase text-ink-faint;
   }
 
   /* Placeholder de carga */
   .skeleton {
-    @apply relative overflow-hidden rounded-input bg-ink-700;
+    @apply relative overflow-hidden rounded-input bg-sunken;
   }
   .skeleton::after {
-    @apply absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/[0.06] to-transparent content-[''];
+    @apply absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/70 to-transparent content-[''];
     transform: translateX(-100%);
   }
 }

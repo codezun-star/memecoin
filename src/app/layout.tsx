@@ -25,22 +25,35 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://memecoin.codezun.com";
+
 export const metadata: Metadata = {
+  // Base para que las URLs canónicas y las de Open Graph salgan absolutas.
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Memecoin Plaza — precios y debate de meme coins",
     template: "%s · Memecoin Plaza",
   },
   description:
     "Precios en tiempo real y foro de la comunidad para Dogecoin, Shiba Inu, Pepe y Bonk.",
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Memecoin Plaza",
-    description: "Precios y debate de meme coins: DOGE, SHIB, PEPE y BONK.",
+    description: "Precios en tiempo real y debate de meme coins: DOGE, SHIB, PEPE y BONK.",
+    url: SITE_URL,
+    siteName: "Memecoin Plaza",
+    locale: "es_ES",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Memecoin Plaza",
+    description: "Precios en tiempo real y debate de meme coins.",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#12100E",
+  themeColor: "#FFFBF3",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -49,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh">
         <a
           href="#contenido"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-brand-500 focus:px-4 focus:py-2 focus:text-ink-950"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-brand focus:px-4 focus:py-2 focus:text-ink"
         >
           Saltar al contenido
         </a>

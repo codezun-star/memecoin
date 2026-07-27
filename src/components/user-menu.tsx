@@ -36,22 +36,22 @@ export function UserMenu({ username, avatarUrl }: { username: string; avatarUrl:
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-ink-700 py-1 pl-1 pr-3 transition-colors hover:border-white/20"
+        className="flex items-center gap-2 rounded-full border border-line bg-sunken py-1 pl-1 pr-3 transition-colors hover:border-line-strong"
       >
         <Avatar username={username} avatarUrl={avatarUrl} size="sm" />
-        <span className="hidden max-w-28 truncate text-sm text-cream sm:inline">{username}</span>
+        <span className="hidden max-w-28 truncate text-sm text-ink sm:inline">{username}</span>
       </button>
 
       {open && (
         <div
           role="menu"
-          className="animate-fade-up absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-card border border-white/[0.08] bg-ink-800 p-1.5 shadow-soft"
+          className="animate-fade-up absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-card border border-line bg-surface p-1.5 shadow-soft"
         >
           <Link
             href="/profile"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 rounded-input px-3 py-2 text-sm text-sand transition-colors hover:bg-ink-700 hover:text-cream"
+            className="flex items-center gap-2 rounded-input px-3 py-2 text-sm text-ink-soft transition-colors hover:bg-sunken hover:text-ink"
           >
             <User className="size-4" aria-hidden />
             Mi perfil
@@ -60,7 +60,7 @@ export function UserMenu({ username, avatarUrl }: { username: string; avatarUrl:
             <button
               type="submit"
               role="menuitem"
-              className="flex w-full items-center gap-2 rounded-input px-3 py-2 text-left text-sm text-sand transition-colors hover:bg-ink-700 hover:text-cream"
+              className="flex w-full items-center gap-2 rounded-input px-3 py-2 text-left text-sm text-ink-soft transition-colors hover:bg-sunken hover:text-ink"
             >
               <LogOut className="size-4" aria-hidden />
               Cerrar sesión

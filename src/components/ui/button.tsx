@@ -5,12 +5,13 @@ import { cn } from "@/lib/utils";
 
 // Variantes y tamaños definidos en DESIGN.md §6
 const VARIANTS = {
+  // Texto oscuro sobre el gradiente, no blanco: en blanco el naranja se queda
+  // en 2.6:1 y no pasa AA. En oscuro sube a ~11:1 y además se ve más "plástico".
   primary:
-    "bg-hype text-ink-950 font-semibold shadow-inset-top hover:brightness-110 active:brightness-95",
-  secondary:
-    "bg-ink-700 text-cream border border-white/[0.08] hover:border-white/20 hover:bg-ink-600",
-  ghost: "text-sand hover:text-cream hover:bg-white/[0.06]",
-  danger: "bg-down-soft text-down-500 border border-down-500/30 hover:bg-down-500/20",
+    "bg-hype text-ink font-semibold shadow-inset-top hover:brightness-[1.06] active:brightness-95",
+  secondary: "bg-surface text-ink border border-line-strong hover:bg-sunken",
+  ghost: "text-ink-soft hover:text-ink hover:bg-sunken",
+  danger: "bg-down-soft text-down border border-down/30 hover:bg-down/15",
 } as const;
 
 const SIZES = {

@@ -40,6 +40,7 @@ export type Database = {
           symbol: string;
           name: string;
           accent: string;
+          accent_ink: string | null;
           tagline: string | null;
           blurb: string | null;
           sort_order: number;
@@ -51,6 +52,7 @@ export type Database = {
           symbol: string;
           name: string;
           accent: string;
+          accent_ink?: string | null;
           tagline?: string | null;
           blurb?: string | null;
           sort_order?: number;
@@ -60,6 +62,7 @@ export type Database = {
           symbol?: string;
           name?: string;
           accent?: string;
+          accent_ink?: string | null;
           tagline?: string | null;
           blurb?: string | null;
           sort_order?: number;

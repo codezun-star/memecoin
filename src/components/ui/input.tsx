@@ -4,8 +4,8 @@ import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const FIELD_BASE =
-  "w-full rounded-input border border-white/[0.08] bg-ink-700 px-4 text-cream placeholder:text-dust " +
-  "transition-colors duration-[180ms] focus:border-brand-500 focus:outline-none focus:ring-[3px] focus:ring-brand-500/25 " +
+  "w-full rounded-input border border-line bg-sunken px-4 text-ink placeholder:text-ink-faint " +
+  "transition-colors duration-[180ms] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/25 " +
   "disabled:opacity-50";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
@@ -38,15 +38,15 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-sand">
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-ink-soft">
         {label}
       </label>
       {children}
       {/* El error se comunica con texto, no solo con el color del borde */}
       {error ? (
-        <p className="text-sm text-down-500">{error}</p>
+        <p className="text-sm text-down">{error}</p>
       ) : hint ? (
-        <p className="text-sm text-dust">{hint}</p>
+        <p className="text-sm text-ink-faint">{hint}</p>
       ) : null}
     </div>
   );
