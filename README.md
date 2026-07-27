@@ -68,7 +68,25 @@ En Supabase → **Authentication → URL Configuration**:
 
 Hace falta aunque no uses OAuth: el enlace de confirmación de email vuelve por ahí.
 
-### 5. Arrancar
+### 5. Desactivar la confirmación por email
+
+El registro está pensado para que el usuario entre **de inmediato**, sin pasar por
+el correo. Eso no se controla desde el código, sino desde el panel:
+
+1. **Authentication → Sign In / Providers** (en paneles antiguos, *Providers*).
+2. Abre el proveedor **Email**.
+3. Desactiva el interruptor **Confirm email**.
+4. **Save**.
+
+Hecho eso, `supabase.auth.signUp()` devuelve sesión directamente y la app redirige
+al usuario ya logueado. Si algún día vuelves a activarlo, el código lo detecta
+solo y muestra el aviso de "revisa tu correo" — no hay que tocar nada.
+
+> Desactivarlo **no confirma retroactivamente** a las cuentas ya creadas. Si una
+> cuenta anterior sigue sin poder entrar, bórrala en **Authentication → Users** y
+> regístrala de nuevo.
+
+### 6. Arrancar
 
 ```bash
 npm run dev
