@@ -124,18 +124,20 @@ export function parsearMensaje(raw: unknown, porPar: Map<string, string>): Trade
 }
 
 /**
- * Una operación tal y como la manda el mercado secundario.
+ * Una operación del mercado secundario.
  *
  * Formato distinto al del principal, y en un aspecto para mejor: aquí `side` ya
  * viene resuelto —dice directamente si el agresor compraba o vendía— en vez de
  * tener que deducirlo de si el comprador era el creador de la orden.
+ *
+ * Este mercado se consulta solo desde el servidor, nunca desde el navegador
+ * (ver la nota de `use-live-trades.ts`), así que basta con el formato por lotes.
  */
 type TradeGate = {
   id?: number;
   create_time_ms?: string | number;
   create_time?: string | number;
   side?: string;
-  currency_pair?: string;
   amount?: string;
   price?: string;
 };
@@ -165,25 +167,6 @@ function construirGate(coinId: string, par: string, fila: TradeGate): Trade | nu
     timestamp,
     side: fila.side === "sell" ? "sell" : "buy",
   };
-}
-
-/** Convierte un mensaje del flujo en directo del mercado secundario. */
-export function parsearMensajeGate(raw: unknown, porPar: Map<string, string>): Trade | null {
-  if (!raw || typeof raw !== "object") return null;
-
-  const sobre = raw as { channel?: unknown; event?: unknown; result?: unknown };
-  // Llegan también confirmaciones de suscripción y respuestas de ping.
-  if (sobre.channel !== "spot.trades" || sobre.event !== "update") return null;
-  if (!sobre.result || typeof sobre.result !== "object") return null;
-
-  const fila = sobre.result as TradeGate;
-  if (typeof fila.currency_pair !== "string") return null;
-
-  const par = fila.currency_pair.toUpperCase();
-  const coinId = porPar.get(par);
-  if (!coinId) return null;
-
-  return construirGate(coinId, par, fila);
 }
 
 /** Convierte un lote pedido al servidor al mercado secundario. */

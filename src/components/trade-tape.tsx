@@ -23,8 +23,8 @@ const ESTADO: Record<
     clase: "text-doge-ink",
     late: true,
     detalle:
-      "Alguna de estas monedas llega a través de nuestro servidor, en tandas de unos segundos, " +
-      "porque su mercado no admite la conexión directa desde tu navegador. Los datos son los mismos.",
+      "Alguna de estas monedas solo cotiza en mercados pequeños, así que sus operaciones llegan a " +
+      "través de nuestro servidor en tandas de unos segundos. Son las mismas operaciones reales.",
   },
   reconectando: { texto: "Reconectando", clase: "text-doge-ink", late: true },
   error: { texto: "Sin conexión", clase: "text-down", late: false },

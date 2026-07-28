@@ -7,7 +7,6 @@ import {
   normalizarLote,
   normalizarLoteGate,
   parsearMensaje,
-  parsearMensajeGate,
 } from "./trades";
 
 const POR_PAR = new Map([
@@ -123,39 +122,33 @@ test("fusionar corta la lista para que no crezca sin límite", () => {
 });
 
 // ---- Mercado secundario -----------------------------------------------------
+//
+// Este mercado solo se consulta desde el servidor, por lotes: no hay conexión
+// directa desde el navegador (ver la nota de `use-live-trades.ts`).
 
-const POR_PAR_GATE = new Map([
-  ["MOG_USDT", "mog-coin"],
-  ["GOAT_USDT", "goatseus-maximus"],
-]);
-
-function mensajeGate(extra: Record<string, unknown> = {}) {
-  return {
-    time: 1606292218,
-    channel: "spot.trades",
-    event: "update",
-    result: {
+function loteGate(extra: Record<string, unknown> = {}) {
+  return [
+    {
       id: 309143071,
       create_time: 1606292218,
       create_time_ms: "1606292218213.4578",
       side: "sell",
-      currency_pair: "MOG_USDT",
       amount: "16.47",
       price: "0.47",
       ...extra,
     },
-  };
+  ];
 }
 
 test("el mercado secundario trae el lado ya resuelto, sin deducirlo", () => {
   // En el principal hay que mirar si el comprador era el creador de la orden;
   // aquí viene dicho, y el mapeo tiene que respetarlo tal cual.
-  assert.equal(parsearMensajeGate(mensajeGate({ side: "sell" }), POR_PAR_GATE)?.side, "sell");
-  assert.equal(parsearMensajeGate(mensajeGate({ side: "buy" }), POR_PAR_GATE)?.side, "buy");
+  assert.equal(normalizarLoteGate(loteGate({ side: "sell" }), "mog-coin", "MOG_USDT")[0].side, "sell");
+  assert.equal(normalizarLoteGate(loteGate({ side: "buy" }), "mog-coin", "MOG_USDT")[0].side, "buy");
 });
 
-test("parsearMensajeGate resuelve la moneda y los importes", () => {
-  const trade = parsearMensajeGate(mensajeGate(), POR_PAR_GATE);
+test("normalizarLoteGate resuelve la moneda y los importes", () => {
+  const [trade] = normalizarLoteGate(loteGate(), "mog-coin", "MOG_USDT");
   assert.ok(trade);
   assert.equal(trade.coinId, "mog-coin");
   assert.equal(trade.price, 0.47);
@@ -164,39 +157,20 @@ test("parsearMensajeGate resuelve la moneda y los importes", () => {
 });
 
 test("el milisegundo del secundario llega como cadena con decimales", () => {
-  const trade = parsearMensajeGate(mensajeGate(), POR_PAR_GATE);
-  assert.equal(trade?.timestamp, 1606292218213);
+  assert.equal(normalizarLoteGate(loteGate(), "mog-coin", "MOG_USDT")[0].timestamp, 1606292218213);
 
   // Sin milisegundos, se cae a los segundos y se escala.
-  const soloSegundos = parsearMensajeGate(
-    mensajeGate({ create_time_ms: undefined }),
-    POR_PAR_GATE,
+  const soloSegundos = normalizarLoteGate(
+    loteGate({ create_time_ms: undefined }),
+    "mog-coin",
+    "MOG_USDT",
   );
-  assert.equal(soloSegundos?.timestamp, 1606292218000);
-});
-
-test("parsearMensajeGate ignora acuses de suscripción y respuestas de ping", () => {
-  assert.equal(
-    parsearMensajeGate(
-      { time: 1, channel: "spot.trades", event: "subscribe", result: { status: "success" } },
-      POR_PAR_GATE,
-    ),
-    null,
-  );
-  assert.equal(
-    parsearMensajeGate({ time: 1, channel: "spot.pong", event: "update" }, POR_PAR_GATE),
-    null,
-  );
-  // Un par que no seguimos: llegaría por una suscripción vieja tras reconectar.
-  assert.equal(
-    parsearMensajeGate(mensajeGate({ currency_pair: "BTC_USDT" }), POR_PAR_GATE),
-    null,
-  );
+  assert.equal(soloSegundos[0].timestamp, 1606292218000);
 });
 
 test("los dos mercados producen la misma forma de operación", () => {
   const delPrincipal = parsearMensaje(mensaje(), POR_PAR);
-  const delSecundario = parsearMensajeGate(mensajeGate(), POR_PAR_GATE);
+  const [delSecundario] = normalizarLoteGate(loteGate(), "mog-coin", "MOG_USDT");
 
   assert.ok(delPrincipal && delSecundario);
   assert.deepEqual(Object.keys(delPrincipal).sort(), Object.keys(delSecundario).sort());
@@ -204,7 +178,11 @@ test("los dos mercados producen la misma forma de operación", () => {
 
 test("las operaciones de ambos mercados se fusionan en una sola cinta", () => {
   const a = parsearMensaje(mensaje({ T: 100 }), POR_PAR)!;
-  const b = parsearMensajeGate(mensajeGate({ id: 7, create_time_ms: "300" }), POR_PAR_GATE)!;
+  const [b] = normalizarLoteGate(
+    loteGate({ id: 7, create_time_ms: "300" }),
+    "mog-coin",
+    "MOG_USDT",
+  );
 
   const cinta = fusionar([a], [b]);
   assert.equal(cinta.length, 2);

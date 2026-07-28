@@ -63,7 +63,7 @@ const FAQ: FaqItem[] = [
   {
     pregunta: "¿Por qué a veces pone «En diferido»?",
     respuesta:
-      "Porque la conexión directa la abre tu propio navegador, y hay redes que la bloquean: es habitual en oficinas y en algunas conexiones móviles. Cuando eso pasa, la página pasa a traer las operaciones a través de nuestro servidor. Siguen siendo reales, pero llegan en tandas con unos segundos de retraso, y la etiqueta lo indica en lugar de fingir que es tiempo real.",
+      "Por dos motivos. El primero: siete de las veinte monedas solo cotizan en mercados pequeños, y esas operaciones las trae nuestro servidor en tandas de unos segundos en lugar de tu navegador en directo. Como son las menos líquidas —pasan minutos entre operación y operación—, no se pierde nada. El segundo: si tu red bloquea la conexión directa, el resto de monedas pasa también por el servidor. En ambos casos las operaciones son reales y la etiqueta lo dice en vez de fingir que es tiempo real.",
   },
   {
     pregunta: "¿Cuántas operaciones se muestran?",
@@ -131,8 +131,10 @@ export default async function OperacionesPage() {
           </p>
           <p>
             No todas van por el mismo sitio: el mercado con más volumen solo lista las meme coins
-            grandes, así que siete de las veinte vienen de un segundo mercado que sí las tiene. La
-            cinta las mezcla sin distinguirlas.
+            grandes, así que siete de las veinte vienen de un segundo mercado que sí las tiene. Esas
+            siete llegan <strong className="text-ink">a través de nuestro servidor</strong>, en
+            tandas de unos segundos: son las menos líquidas y entre operación y operación pasan
+            minutos, así que el directo exacto no aporta nada. La cinta las mezcla sin distinguirlas.
           </p>
           <p>
             La conexión la abre tu propio navegador. Si tu red la bloquea —pasa en oficinas y en

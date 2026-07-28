@@ -519,17 +519,27 @@ Por eso cada moneda declara uno de estos dos en `src/lib/coins.ts`:
 | `gatePair` | secundario | mayúsculas con guion bajo (`MOG_USDT`) |
 
 `mercadoDe(coin)` resuelve cuál toca y prefiere el principal cuando existe: tiene
-más profundidad y más operaciones por segundo, así que la cinta se ve más viva.
+más profundidad y más operaciones por segundo.
 
-Los dos protocolos son distintos —uno mete los flujos en la URL, el otro los pide
-por mensaje y necesita latido para que no le corten la conexión— pero eso vive
-todo en la tabla `PROTOCOLOS` de `use-live-trades.ts`. La rotación de hosts, la
-reconexión y el respaldo son el mismo código para ambos.
+### Cada mercado llega por un camino distinto
 
-**Cada mercado tiene su propia conexión con su propio ciclo de vida.** Es
-deliberado: cuando colgaban del mismo efecto, tocar una moneda del secundario
-cortaba y reabría también el flujo del principal. Ahora solo se reconecta el
-mercado cuya lista de pares ha cambiado.
+| Mercado | Cómo llega | Por qué |
+| --- | --- | --- |
+| principal | WebSocket desde el navegador | Varias operaciones por segundo: el directo se nota |
+| secundario | sondeo a `/api/trades` desde el servidor | Son las menos líquidas y su conexión directa falla en muchas redes |
+
+La segunda fila salió de producción, no de una preferencia de diseño. La conexión
+directa a ese mercado **falla en bastantes redes** —bloqueo regional, filtros
+corporativos, operadores móviles—: el navegador no abría, la consola se llenaba
+de errores y esas monedas tardaban seis segundos en caer al respaldo.
+
+Sondear cada cinco segundos algo que se cruza cada diez minutos no pierde nada, y
+a cambio funciona para cualquier visitante esté donde esté. Por eso el navegador
+**ya no abre ninguna conexión a ese mercado**: no hay un `NEXT_PUBLIC_` para él.
+
+Queda un nivel de respaldo para el principal: si su WebSocket tampoco abre, sus
+monedas pasan también por el servidor. La interfaz lo etiqueta **En diferido** en
+cuanto una sola moneda venga por ahí, en lugar de decir «en vivo» por las otras.
 
 Un par equivocado no da error visible —el flujo simplemente no manda nada para
 esa moneda—, así que hay un script que comprueba los dos mercados:

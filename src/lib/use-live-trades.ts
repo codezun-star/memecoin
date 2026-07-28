@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   fusionar,
   parsearMensaje,
-  parsearMensajeGate,
   type EstadoConexion,
   type Trade,
 } from "@/lib/trades";
@@ -27,25 +26,29 @@ export type { EstadoConexion, Trade } from "@/lib/trades";
  *  - Los flujos son públicos y no llevan credenciales, así que no hay nada que
  *    proteger detrás de un intermediario.
  *
- * Hay **dos mercados**, no uno. El principal solo lista las meme coins grandes:
- * siete de las veinte que seguimos no cotizan ahí en contado, así que salen del
- * secundario. Cada uno habla su propio protocolo y **tiene su propia conexión
- * con su propio ciclo de vida**: tocar una moneda del secundario no puede
- * cortar el flujo del principal, que es lo que pasaba cuando ambos colgaban del
- * mismo efecto.
+ * Hay **dos mercados**, y se tratan de forma distinta a propósito.
  *
- * Y hay tres niveles de respaldo, porque abrir la conexión desde el navegador
- * tiene un coste: hay redes que la bloquean —oficinas, algunos operadores
- * móviles, no pocos antivirus—:
+ * El **principal** lista las meme coins grandes y mueve varias operaciones por
+ * segundo. Ahí sí compensa la conexión directa desde el navegador: es la única
+ * forma de tener latencia de milisegundos.
  *
- *  1. Se prueban varios hosts por mercado, empezando por el del puerto estándar.
- *  2. Si **ningún** mercado abre, se pasa a sondear nuestro propio servidor, que
- *     sí puede traer las últimas operaciones por una vía normal. Se pierde el
- *     directo exacto, pero los datos siguen siendo reales, y la página lo dice.
- *  3. Si tampoco eso funciona, se avisa sin dejar la pantalla en blanco.
+ * El **secundario** cubre las siete que el principal no lista en contado, y son
+ * justamente las menos líquidas: entre operación y operación pasan minutos u
+ * horas. Ese flujo **no se pide desde el navegador, se pide a nuestro servidor**.
+ *
+ * La razón es empírica. La conexión directa a ese mercado falla en bastantes
+ * redes —bloqueo regional, filtros corporativos, operadores móviles— y se veía
+ * en producción: el navegador no abría, la consola se llenaba de errores y esas
+ * monedas tardaban seis segundos en caer al respaldo. Sondear cada cinco
+ * segundos algo que se cruza cada diez minutos no pierde absolutamente nada, y
+ * a cambio funciona para todo el mundo, esté donde esté.
+ *
+ * Queda un nivel de respaldo para el mercado principal: si su conexión directa
+ * tampoco abre, sus monedas pasan también por el servidor. Y si eso falla, se
+ * avisa sin dejar la pantalla en blanco.
  *
  * A cambio hay que ser honesto sobre qué se está viendo: **las operaciones de
- * un solo mercado por moneda**, no de todo el sector. Se etiqueta como tal.
+ * un solo mercado por moneda**, no de todo el sector, y en diferido cuando toca.
  */
 
 /** Cuánto se espera a que un host abra antes de darlo por perdido. */
@@ -90,7 +93,11 @@ type Protocolo = {
   clavePar(par: string): string;
 };
 
-const PROTOCOLOS: Record<FuenteDeMercado, Protocolo> = {
+/**
+ * Solo el mercado principal se abre desde el navegador. El secundario va por
+ * servidor (ver la nota de arriba), así que aquí no aparece.
+ */
+const PROTOCOLOS: Record<"binance", Protocolo> = {
   binance: {
     endpoints: process.env.NEXT_PUBLIC_TRADES_WS
       ? process.env.NEXT_PUBLIC_TRADES_WS.split(",").map((x) => x.trim()).filter(Boolean)
@@ -105,33 +112,6 @@ const PROTOCOLOS: Record<FuenteDeMercado, Protocolo> = {
     url: (base, pares) => base + pares.map((p) => `${p}@aggTrade`).join("/"),
     parsear: parsearMensaje,
     clavePar: (par) => par.toLowerCase(),
-  },
-  gate: {
-    endpoints: process.env.NEXT_PUBLIC_TRADES_WS_GATE
-      ? process.env.NEXT_PUBLIC_TRADES_WS_GATE.split(",").map((x) => x.trim()).filter(Boolean)
-      : [
-          "wss://api.gateio.ws/ws/v4/",
-          // Alias antiguo del mismo servicio. Algunas redes y algunos filtros
-          // resuelven uno y no el otro, así que tener los dos sale gratis.
-          "wss://ws.gate.io/v4/",
-        ],
-    // Aquí los pares no van en la URL: se piden después, por mensaje.
-    url: (base) => base,
-    suscripcion: (pares) =>
-      JSON.stringify({
-        time: Math.floor(Date.now() / 1000),
-        channel: "spot.trades",
-        event: "subscribe",
-        payload: pares,
-      }),
-    // Sin latido, el servidor corta la conexión cuando el mercado está tranquilo
-    // y la cinta se pasa el rato reconectando.
-    latido: {
-      cadaMs: 20_000,
-      mensaje: () => JSON.stringify({ time: Math.floor(Date.now() / 1000), channel: "spot.ping" }),
-    },
-    parsear: parsearMensajeGate,
-    clavePar: (par) => par.toUpperCase(),
   },
 };
 
@@ -148,13 +128,12 @@ const hostAprendido: Partial<Record<FuenteDeMercado, number>> = {};
 export type ParDeMoneda = { coinId: string; par: string; fuente: FuenteDeMercado };
 
 /**
- * Una conexión a un mercado.
+ * Conexión directa al mercado principal.
  *
- * Se llama una vez por mercado, siempre en el mismo orden, así que las reglas de
- * los hooks se cumplen aunque un mercado no tenga ninguna moneda elegida: en ese
- * caso queda inactivo y no abre nada.
+ * Si no hay ninguna moneda suya elegida, queda inactiva y no abre nada.
  */
-function useConexionMercado(fuente: FuenteDeMercado, pares: ParDeMoneda[]) {
+function useConexionDirecta(pares: ParDeMoneda[]) {
+  const fuente: FuenteDeMercado = "binance";
   const [trades, setTrades] = useState<Trade[]>([]);
   const [estado, setEstado] = useState<EstadoInterno>("inactivo");
 
@@ -365,7 +344,7 @@ function useConexionMercado(fuente: FuenteDeMercado, pares: ParDeMoneda[]) {
       document.removeEventListener("visibilitychange", alCambiarVisibilidad);
       detener();
     };
-  }, [fuente, clave]);
+  }, [clave]);
 
   return { fuente, trades, estado, activo: clave !== "" };
 }
@@ -442,56 +421,53 @@ function useRespaldo(monedas: string) {
 }
 
 export function useLiveTrades(pares: ParDeMoneda[]) {
-  // Un hook por mercado, siempre los mismos y en el mismo orden.
-  const binance = useConexionMercado("binance", pares);
-  const gate = useConexionMercado("gate", pares);
-
-  const conexiones = useMemo(() => [binance, gate], [binance, gate]);
-  const activas = conexiones.filter((c) => c.activo);
+  const directa = useConexionDirecta(pares);
 
   /**
-   * Monedas que necesitan el respaldo: las de un mercado que se ha quedado sin
-   * hosts. Se sondean aunque el otro mercado vaya perfectamente.
+   * Monedas que llegan por nuestro servidor.
+   *
+   * Dos grupos, por motivos distintos: las del mercado secundario **siempre**
+   * —su conexión directa falla en demasiadas redes y son las menos líquidas, así
+   * que no se pierde nada— y las del principal solo si su conexión se ha quedado
+   * sin hosts.
    */
-  const monedasSinFlujo = useMemo(() => {
-    const agotadas = new Set(
-      conexiones.filter((c) => c.activo && c.estado === "agotado").map((c) => c.fuente),
-    );
-    if (agotadas.size === 0) return "";
+  const monedasPorServidor = useMemo(() => {
+    const ids = pares
+      .filter((p) => p.fuente !== "binance" || directa.estado === "agotado")
+      .map((p) => p.coinId);
+    return [...new Set(ids)].sort().join(",");
+  }, [pares, directa.estado]);
 
-    return [...new Set(pares.filter((p) => agotadas.has(p.fuente)).map((p) => p.coinId))]
-      .sort()
-      .join(",");
-  }, [conexiones, pares]);
-
-  const respaldo = useRespaldo(monedasSinFlujo);
+  const respaldo = useRespaldo(monedasPorServidor);
 
   const trades = useMemo(
-    () => fusionar(fusionar(binance.trades, gate.trades), respaldo.trades),
-    [binance.trades, gate.trades, respaldo.trades],
+    () => fusionar(directa.trades, respaldo.trades),
+    [directa.trades, respaldo.trades],
   );
 
   const estado: EstadoConexion = useMemo(() => {
-    if (activas.length === 0) return "conectando";
+    if (pares.length === 0) return "conectando";
 
-    const valores = activas.map((c) => c.estado);
-    const hayAgotado = valores.includes("agotado");
+    const directoVivo = directa.activo && directa.estado === "en-vivo";
+    const hayPorServidor = monedasPorServidor !== "";
 
-    // Todo el flujo va por el respaldo y encima el respaldo no trae nada.
-    if (valores.every((e) => e === "agotado") && respaldo.agotado) return "error";
+    if (!hayPorServidor) {
+      if (directoVivo) return "en-vivo";
+      if (directa.estado === "reconectando") return "reconectando";
+      return "conectando";
+    }
+
+    // Nada llega y el servidor tampoco trae nada: no hay más que contar.
+    if (respaldo.agotado && !directoVivo) return "error";
 
     /**
-     * Basta con que **una** moneda venga por el respaldo para decir «diferido».
+     * Basta con que **una** moneda venga por el servidor para decir «diferido».
      *
-     * Decir «en vivo» porque el otro mercado sí abre sería engañoso justo para
-     * la moneda que el visitante está mirando.
+     * Decir «en vivo» porque las otras sí abren sería engañoso justo para la
+     * moneda que el visitante está mirando.
      */
-    if (hayAgotado) return "diferido";
-
-    if (valores.includes("en-vivo")) return "en-vivo";
-    if (valores.includes("conectando")) return "conectando";
-    return "reconectando";
-  }, [activas, respaldo.agotado]);
+    return "diferido";
+  }, [pares.length, directa.activo, directa.estado, monedasPorServidor, respaldo.agotado]);
 
   return { trades, estado };
 }
