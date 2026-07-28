@@ -109,7 +109,12 @@ const PROTOCOLOS: Record<FuenteDeMercado, Protocolo> = {
   gate: {
     endpoints: process.env.NEXT_PUBLIC_TRADES_WS_GATE
       ? process.env.NEXT_PUBLIC_TRADES_WS_GATE.split(",").map((x) => x.trim()).filter(Boolean)
-      : ["wss://api.gateio.ws/ws/v4/"],
+      : [
+          "wss://api.gateio.ws/ws/v4/",
+          // Alias antiguo del mismo servicio. Algunas redes y algunos filtros
+          // resuelven uno y no el otro, así que tener los dos sale gratis.
+          "wss://ws.gate.io/v4/",
+        ],
     // Aquí los pares no van en la URL: se piden después, por mensaje.
     url: (base) => base,
     suscripcion: (pares) =>
@@ -362,16 +367,19 @@ function useConexionMercado(fuente: FuenteDeMercado, pares: ParDeMoneda[]) {
     };
   }, [fuente, clave]);
 
-  return { trades, estado, activo: clave !== "" };
+  return { fuente, trades, estado, activo: clave !== "" };
 }
 
 /**
  * Respaldo por sondeo al servidor.
  *
- * Solo se enciende cuando **ningún** mercado ha conseguido abrir, que es lo que
- * pasa cuando la red del visitante bloquea este tipo de conexión.
+ * Cubre **las monedas cuyo mercado no ha conseguido abrir**, no todas o ninguna.
+ * La primera versión solo se encendía si fallaban los dos mercados, y eso dejaba
+ * un agujero real: con DOGE y APU elegidas a la vez, si el mercado de APU no
+ * abría pero el de DOGE sí, APU no recibía nada por ningún camino —ni en vivo ni
+ * diferido— y su fila simplemente no aparecía.
  */
-function useRespaldo(monedas: string, encendido: boolean) {
+function useRespaldo(monedas: string) {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [agotado, setAgotado] = useState(false);
 
@@ -389,7 +397,7 @@ function useRespaldo(monedas: string, encendido: boolean) {
   }, [monedas]);
 
   useEffect(() => {
-    if (!encendido || monedas === "") return;
+    if (monedas === "") return;
 
     let vivo = true;
     let fallos = 0;
@@ -428,7 +436,7 @@ function useRespaldo(monedas: string, encendido: boolean) {
       vivo = false;
       clearInterval(intervalo);
     };
-  }, [monedas, encendido]);
+  }, [monedas]);
 
   return { trades, agotado };
 }
@@ -441,13 +449,22 @@ export function useLiveTrades(pares: ParDeMoneda[]) {
   const conexiones = useMemo(() => [binance, gate], [binance, gate]);
   const activas = conexiones.filter((c) => c.activo);
 
-  // Respaldo solo si todas las conexiones activas se han quedado sin hosts.
-  const todasAgotadas = activas.length > 0 && activas.every((c) => c.estado === "agotado");
-  const monedas = useMemo(
-    () => [...new Set(pares.map((p) => p.coinId))].sort().join(","),
-    [pares],
-  );
-  const respaldo = useRespaldo(monedas, todasAgotadas);
+  /**
+   * Monedas que necesitan el respaldo: las de un mercado que se ha quedado sin
+   * hosts. Se sondean aunque el otro mercado vaya perfectamente.
+   */
+  const monedasSinFlujo = useMemo(() => {
+    const agotadas = new Set(
+      conexiones.filter((c) => c.activo && c.estado === "agotado").map((c) => c.fuente),
+    );
+    if (agotadas.size === 0) return "";
+
+    return [...new Set(pares.filter((p) => agotadas.has(p.fuente)).map((p) => p.coinId))]
+      .sort()
+      .join(",");
+  }, [conexiones, pares]);
+
+  const respaldo = useRespaldo(monedasSinFlujo);
 
   const trades = useMemo(
     () => fusionar(fusionar(binance.trades, gate.trades), respaldo.trades),
@@ -456,15 +473,25 @@ export function useLiveTrades(pares: ParDeMoneda[]) {
 
   const estado: EstadoConexion = useMemo(() => {
     if (activas.length === 0) return "conectando";
-    if (todasAgotadas) return respaldo.agotado ? "error" : "diferido";
 
     const valores = activas.map((c) => c.estado);
-    // Con datos llegando de cualquier mercado, la cinta está viva: da igual que
-    // el otro siga negociando su conexión.
+    const hayAgotado = valores.includes("agotado");
+
+    // Todo el flujo va por el respaldo y encima el respaldo no trae nada.
+    if (valores.every((e) => e === "agotado") && respaldo.agotado) return "error";
+
+    /**
+     * Basta con que **una** moneda venga por el respaldo para decir «diferido».
+     *
+     * Decir «en vivo» porque el otro mercado sí abre sería engañoso justo para
+     * la moneda que el visitante está mirando.
+     */
+    if (hayAgotado) return "diferido";
+
     if (valores.includes("en-vivo")) return "en-vivo";
     if (valores.includes("conectando")) return "conectando";
     return "reconectando";
-  }, [activas, todasAgotadas, respaldo.agotado]);
+  }, [activas, respaldo.agotado]);
 
   return { trades, estado };
 }

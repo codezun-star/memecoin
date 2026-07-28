@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
@@ -22,11 +22,36 @@ const ESTADO: Record<
     texto: "En diferido",
     clase: "text-doge-ink",
     late: true,
-    detalle: "Tu red no permite la conexión directa, así que las operaciones llegan en tandas de unos segundos.",
+    detalle:
+      "Alguna de estas monedas llega a través de nuestro servidor, en tandas de unos segundos, " +
+      "porque su mercado no admite la conexión directa desde tu navegador. Los datos son los mismos.",
   },
   reconectando: { texto: "Reconectando", clase: "text-doge-ink", late: true },
   error: { texto: "Sin conexión", clase: "text-down", late: false },
 };
+
+/**
+ * Cuánto hace de la última operación, en palabras.
+ *
+ * Existe por una confusión real: en una moneda poco líquida pueden pasar horas
+ * entre operaciones, así que la cinta se queda quieta y **parece rota** aunque
+ * los datos sean correctos. Decirlo con todas las letras cuesta una línea.
+ */
+function haceCuanto(ms: number): string {
+  const minutos = Math.floor(ms / 60_000);
+  if (minutos < 1) return "menos de un minuto";
+  if (minutos < 60) return `${minutos} min`;
+
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  if (horas < 24) return resto > 0 ? `${horas} h ${resto} min` : `${horas} h`;
+
+  const dias = Math.floor(horas / 24);
+  return dias === 1 ? "1 día" : `${dias} días`;
+}
+
+/** A partir de aquí se avisa de que la cinta está parada porque no hay actividad. */
+const CINTA_PARADA_MS = 3 * 60_000;
 
 /** Hora con segundos: en una cinta de operaciones el minuto no basta. */
 function hora(ts: number): string {
@@ -86,6 +111,23 @@ export function TradeTape({ logos = {} }: { logos?: Record<string, string> }) {
     setSeleccion((actual) =>
       actual.includes(id) ? actual.filter((x) => x !== id) : [...actual, id],
     );
+
+  /**
+   * Reloj propio, que arranca en `null`.
+   *
+   * Leer `Date.now()` durante el render daría un valor distinto en el servidor y
+   * en el navegador, y eso rompe la hidratación —ya pasó una vez con el gráfico—.
+   * Empezando en `null`, el primer marcado no depende de la hora.
+   */
+  const [ahora, setAhora] = useState<number | null>(null);
+  useEffect(() => {
+    setAhora(Date.now());
+    const t = setInterval(() => setAhora(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const antiguedad = ahora !== null && trades.length > 0 ? ahora - trades[0].timestamp : null;
+  const cintaParada = antiguedad !== null && antiguedad > CINTA_PARADA_MS;
 
   const info = ESTADO[estado];
 
@@ -165,8 +207,18 @@ export function TradeTape({ logos = {} }: { logos?: Record<string, string> }) {
         </div>
       </div>
 
-      {info.detalle && (
-        <p className="-mt-2 text-xs text-ink-faint">{info.detalle}</p>
+      {(info.detalle || cintaParada) && (
+        <div className="-mt-2 space-y-1.5">
+          {info.detalle && <p className="text-xs text-ink-faint">{info.detalle}</p>}
+          {cintaParada && antiguedad !== null && (
+            <p className="text-xs text-ink-faint">
+              La operación más reciente es de hace{" "}
+              <strong className="font-semibold text-ink-soft">{haceCuanto(antiguedad)}</strong>. En
+              monedas poco líquidas es normal que pasen minutos u horas entre operaciones: la cinta
+              no está parada, es que no se ha cruzado nada nuevo.
+            </p>
+          )}
+        </div>
       )}
 
       {/* La cinta */}
