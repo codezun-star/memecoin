@@ -72,13 +72,51 @@ async function main() {
     .png({ compressionLevel: 9 })
     .toFile(path.join(APP_DIR, "opengraph-image.png"));
 
-  // Versión ligera del logo para la cabecera: el original son 500x500 y ~300 KB.
+  // Versión ligera del logo para la cabecera y el pie. 192 px cubre un elemento
+  // de 48 px hasta en pantallas 3x, y sigue pesando una fracción de los ~300 KB
+  // del original.
   await sharp(SOURCE)
-    .resize(128, 128, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .resize(192, 192, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png({ compressionLevel: 9 })
     .toFile(path.join(ROOT, "public", "logo-mark.png"));
 
-  console.log("✓ icon.png, apple-icon.png, opengraph-image.png y public/logo-mark.png generados");
+  // --- Iconos de la PWA -----------------------------------------------------
+  const ICONS_DIR = path.join(ROOT, "public", "icons");
+  await mkdir(ICONS_DIR, { recursive: true });
+
+  for (const size of [192, 512]) {
+    await sharp(SOURCE)
+      .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png({ compressionLevel: 9 })
+      .toFile(path.join(ICONS_DIR, `icon-${size}.png`));
+  }
+
+  /**
+   * Icono "maskable": Android lo recorta con la forma que use el sistema
+   * (círculo, cuadrado redondeado, gota…). Solo el 80 % central está garantizado,
+   * así que el logo se reduce y se centra sobre un fondo opaco. Sin esto, los
+   * destellos del logo y parte del disco se pierden en el recorte.
+   */
+  const MASKABLE = 512;
+  const SAFE = Math.round(MASKABLE * 0.62);
+  const logoSeguro = await sharp(SOURCE).resize(SAFE, SAFE, { fit: "contain" }).toBuffer();
+
+  await sharp({
+    create: {
+      width: MASKABLE,
+      height: MASKABLE,
+      channels: 4,
+      background: CANVAS,
+    },
+  })
+    .composite([{ input: logoSeguro, top: Math.round((MASKABLE - SAFE) / 2), left: Math.round((MASKABLE - SAFE) / 2) }])
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(ICONS_DIR, "maskable-512.png"));
+
+  console.log(
+    "✓ Generados: icon.png, apple-icon.png, opengraph-image.png, logo-mark.png\n" +
+      "  y los iconos de la PWA (192, 512 y maskable-512).",
+  );
 }
 
 main().catch((error) => {

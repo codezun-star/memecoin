@@ -3,6 +3,8 @@ import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
 
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { ServiceWorkerRegistration } from "@/components/service-worker";
+import { SITE_URL } from "@/lib/site-config";
 
 import "./globals.css";
 
@@ -24,8 +26,6 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
   display: "swap",
 });
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://memecoin.codezun.com";
 
 export const metadata: Metadata = {
   // Base para que las URLs canónicas y las de Open Graph salgan absolutas.
@@ -50,6 +50,12 @@ export const metadata: Metadata = {
     title: "Memecoin Plaza",
     description: "Precios en tiempo real y debate de meme coins.",
   },
+  // Instalada en iOS: sin barra del navegador y con el nombre corto.
+  appleWebApp: {
+    capable: true,
+    title: "Memecoin Plaza",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {
@@ -73,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <SiteFooter />
         </div>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

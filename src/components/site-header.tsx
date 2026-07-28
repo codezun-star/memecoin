@@ -18,10 +18,10 @@ export async function SiteHeader() {
             src="/logo-mark.png"
             alt=""
             aria-hidden
-            width={36}
-            height={36}
+            width={48}
+            height={48}
             priority
-            className="size-9 shrink-0 transition-transform duration-[180ms] group-hover:rotate-[-8deg]"
+            className="size-11 shrink-0 transition-transform duration-[180ms] group-hover:rotate-[-8deg] md:size-12"
           />
           <span className="hidden sm:inline">
             Memecoin<span className="text-hype"> Plaza</span>

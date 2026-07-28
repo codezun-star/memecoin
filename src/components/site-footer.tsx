@@ -9,7 +9,7 @@ export function SiteFooter() {
       <div className="shell flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm space-y-3">
           <p className="flex items-center gap-2 font-display text-lg font-extrabold">
-            <Image src="/logo-mark.png" alt="" aria-hidden width={32} height={32} className="size-8" />
+            <Image src="/logo-mark.png" alt="" aria-hidden width={44} height={44} className="size-11" />
             Memecoin<span className="-ml-1 text-hype">Plaza</span>
           </p>
           <p className="text-sm text-ink-faint">

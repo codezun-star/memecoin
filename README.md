@@ -340,6 +340,31 @@ ejecuta el script y commitea los ficheros generados.
 
 ---
 
+## PWA, sitemap y robots
+
+La web es **instalable** (manifiesto en `src/app/manifest.ts` + iconos de 192,
+512 y una versión *maskable*), pero **no funciona sin conexión, a propósito**.
+
+El service worker de [`public/sw.js`](public/sw.js) **no cachea nada**. Existe
+solo porque el navegador no ofrece instalar una aplicación sin un service worker
+con manejador de `fetch`. Cachear aquí sería contraproducente: esto es una web de
+precios en vivo y de un foro, y servir una copia guardada mostraría precios
+viejos y comentarios que ya no existen. Tampoco se guarda HTML de páginas con
+sesión, así que no queda contenido de una cuenta en el disco.
+
+Lo único que aporta: si se cae la red durante una navegación, en vez del
+dinosaurio del navegador aparece un aviso propio con un botón de reintentar. Ese
+aviso va incrustado en el propio service worker como texto, sin depender de
+ningún recurso cacheado.
+
+`sitemap.xml` y `robots.txt` se generan solos desde
+[`src/app/sitemap.ts`](src/app/sitemap.ts) y [`src/app/robots.ts`](src/app/robots.ts).
+El sitemap sale del registro de monedas, así que añadir una moneda la añade al
+sitemap sin tocar nada. Quedan fuera las rutas con sesión (`/profile`), los
+endpoints (`/api/`) y `/auth/`.
+
+---
+
 ## Textos de cara al usuario
 
 Regla del proyecto: **la interfaz no nombra la tecnología ni el estado de la
