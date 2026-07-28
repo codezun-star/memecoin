@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { FEATURED_COINS, TRACKED_COINS } from "@/lib/coins";
@@ -7,8 +8,9 @@ export function SiteFooter() {
     <footer className="mt-20 border-t border-line bg-sunken">
       <div className="shell flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm space-y-3">
-          <p className="font-display text-lg font-extrabold">
-            Memecoin<span className="text-hype"> Plaza</span>
+          <p className="flex items-center gap-2 font-display text-lg font-extrabold">
+            <Image src="/logo-mark.png" alt="" aria-hidden width={32} height={32} className="size-8" />
+            Memecoin<span className="-ml-1 text-hype">Plaza</span>
           </p>
           <p className="text-sm text-ink-faint">
             Esto no es asesoramiento financiero: es un foro de internet sobre monedas de perros y

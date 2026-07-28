@@ -310,9 +310,28 @@ npm run build         # build de producción
 npm run start         # servir el build
 npm test              # pipeline de datos, registro de monedas y contrastes
 npm run coins:verify  # confirma contra la API que los ids de las monedas existen
+npm run icons:generate # regenera favicon, icono de iOS y tarjeta social
 npm run lint          # ESLint
 npm run typecheck     # TypeScript sin emitir
 ```
+
+---
+
+## Logo e iconos
+
+El original es [`public/logomeme.png`](public/logomeme.png) (500x500, con alfa).
+Todo lo demás se deriva de él con `npm run icons:generate`:
+
+| Fichero | Para qué |
+| --- | --- |
+| `src/app/icon.png` | Favicon de la pestaña (96 px) |
+| `src/app/apple-icon.png` | Icono de pantalla de inicio en iOS (180 px, aplanado sobre la crema porque iOS no admite transparencia) |
+| `src/app/opengraph-image.png` | Tarjeta de previsualización al compartir el enlace (1200x630) |
+| `public/logo-mark.png` | Versión ligera para la cabecera y el pie (128 px, ~28 KB en vez de ~300 KB) |
+
+El App Router detecta los tres primeros por su nombre y emite las etiquetas
+`<link>` y `<meta>` solo. Para cambiar el logo: sustituye `public/logomeme.png`,
+ejecuta el script y commitea los ficheros generados.
 
 ---
 

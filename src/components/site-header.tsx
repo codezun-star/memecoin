@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { UserMenu } from "@/components/user-menu";
@@ -12,9 +13,16 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-xl">
       <div className="shell flex h-16 items-center gap-6">
         <Link href="/" className="group flex items-center gap-2 font-display text-lg font-extrabold">
-          <span className="grid size-8 place-items-center rounded-full bg-hype text-base text-ink shadow-inset-top transition-transform duration-[180ms] group-hover:rotate-12">
-            🐕
-          </span>
+          {/* No se recorta a círculo: el logo lleva destellos fuera del disco. */}
+          <Image
+            src="/logo-mark.png"
+            alt=""
+            aria-hidden
+            width={36}
+            height={36}
+            priority
+            className="size-9 shrink-0 transition-transform duration-[180ms] group-hover:rotate-[-8deg]"
+          />
           <span className="hidden sm:inline">
             Memecoin<span className="text-hype"> Plaza</span>
           </span>
