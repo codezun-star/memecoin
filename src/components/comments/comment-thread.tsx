@@ -5,11 +5,21 @@ import { CommentForm } from "@/components/comments/comment-form";
 import { CommentItem } from "@/components/comments/comment-item";
 import { Button } from "@/components/ui/button";
 import { getThread } from "@/lib/comments";
+import { targetPath } from "@/lib/comment-target";
 import { getSessionUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import type { TrackedCoin } from "@/lib/coins";
+import type { CommentTarget } from "@/lib/comment-target";
 
-export async function CommentThread({ coin }: { coin: TrackedCoin }) {
+export async function CommentThread({
+  target,
+  titulo = "Debate",
+  vacio,
+}: {
+  target: CommentTarget;
+  titulo?: string;
+  /** Texto cuando no hay ni un comentario. */
+  vacio: string;
+}) {
   const session = await getSessionUser();
   const viewer = session
     ? {
@@ -19,7 +29,8 @@ export async function CommentThread({ coin }: { coin: TrackedCoin }) {
       }
     : null;
 
-  const comments = await getThread(coin.id, viewer?.id ?? null);
+  const volverA = targetPath(target);
+  const comments = await getThread(target, viewer?.id ?? null);
   const total = comments.reduce((sum, c) => sum + 1 + c.replies.length, 0);
 
   return (
@@ -27,7 +38,7 @@ export async function CommentThread({ coin }: { coin: TrackedCoin }) {
       <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 font-display text-display-md">
           <MessagesSquare className="size-6 text-[color:var(--coin-accent-ink)]" aria-hidden />
-          Debate
+          {titulo}
         </h2>
         <span className="tabular text-sm text-ink-faint">
           {total} {total === 1 ? "comentario" : "comentarios"}
@@ -40,13 +51,13 @@ export async function CommentThread({ coin }: { coin: TrackedCoin }) {
         </div>
       ) : viewer ? (
         <div className="surface-sunken p-4">
-          <CommentForm slug={coin.slug} username={viewer.username} avatarUrl={viewer.avatarUrl} />
+          <CommentForm target={target} username={viewer.username} avatarUrl={viewer.avatarUrl} />
         </div>
       ) : (
         <div className="surface-sunken flex flex-wrap items-center justify-between gap-3 p-4">
           <p className="text-sm text-ink-soft">Inicia sesión para comentar y dar likes.</p>
           <div className="flex gap-2">
-            <Link href={`/login?next=/coin/${coin.slug}`}>
+            <Link href={`/login?next=${encodeURIComponent(volverA)}`}>
               <Button variant="secondary" size="sm">
                 Entrar
               </Button>
@@ -61,12 +72,12 @@ export async function CommentThread({ coin }: { coin: TrackedCoin }) {
       {comments.length > 0 ? (
         <ul className="mt-2 divide-y divide-line">
           {comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} slug={coin.slug} viewer={viewer} />
+            <CommentItem key={comment.id} comment={comment} target={target} viewer={viewer} />
           ))}
         </ul>
       ) : isSupabaseConfigured ? (
         <p className="py-10 text-center text-sm text-ink-faint">
-          Nadie ha dicho nada todavía sobre {coin.name}. Sé el primero.
+          {vacio}
         </p>
       ) : null}
     </section>

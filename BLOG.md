@@ -1,8 +1,11 @@
 # Cómo publicar un artículo
 
-El blog vive entero en ficheros markdown. **No usa la base de datos ni la
-autenticación**: es independiente del sistema de comentarios de las páginas de
-monedas. Publicar es crear un fichero y desplegar.
+El contenido vive entero en ficheros markdown: **publicar es crear un fichero y
+desplegar**, sin base de datos y sin panel de administración.
+
+Los comentarios de los artículos sí usan Supabase, igual que los de las fichas de
+monedas, pero son un añadido encima: el artículo se genera y se lee igual aunque
+no haya nadie registrado.
 
 ---
 
@@ -29,9 +32,10 @@ y las redes sociales:
 title: "Por qué subió Bonk esta semana"
 description: "El airdrop a la comunidad de Solana, el volumen que trajo y qué dice el gráfico de los últimos siete días."
 date: 2026-08-03
-tags: [bonk, análisis]
-image: /blog/bonk-airdrop.jpg
-imageAlt: "Gráfico de Bonk durante la semana del airdrop"
+keywords: [bonk, airdrop bonk, análisis bonk]
+faq:
+  - pregunta: "¿Por qué subió Bonk esta semana?"
+    respuesta: "Por la combinación del airdrop a la comunidad de Solana y el volumen que trajo consigo."
 ---
 
 Aquí empieza el artículo…
@@ -40,7 +44,7 @@ Aquí empieza el artículo…
 ### 3. Sube el fichero
 
 Haz commit y push a `main`. Vercel reconstruye y el artículo aparece publicado,
-en el listado, en su categoría y en el `sitemap.xml`. **No hay que tocar código.**
+en el listado y en el `sitemap.xml`. **No hay que tocar código.**
 
 ---
 
@@ -51,8 +55,9 @@ en el listado, en su categoría y en el `sitemap.xml`. **No hay que tocar códig
 | `title` | **Sí** | Titular del artículo, `<title>` de la pestaña y titular en redes |
 | `description` | **Sí** | Resumen del listado, meta description de Google y texto al compartir |
 | `date` | **Sí** | Fecha de publicación. Ordena el listado (más reciente arriba) |
-| `tags` | No | Categorías. Cada una genera su página en `/blog/categoria/…` |
-| `image` | No | Imagen destacada. Ruta desde `public/`, o URL completa |
+| `keywords` | No | Palabras clave. No se muestran: alimentan la metadata |
+| `faq` | No | Preguntas frecuentes. Se pintan al final y generan el esquema `FAQPage` de Google |
+| `image` | No | Imagen destacada. Si no la pones, se usa la portada con el logo |
 | `imageAlt` | No | Descripción de la imagen para lectores de pantalla |
 | `slug` | No | Fuerza una URL distinta al nombre del fichero |
 | `author` | No | Por defecto, "Memecoin Plaza" |
@@ -71,12 +76,19 @@ palabras clave.
 
 ### Sobre las imágenes
 
-Ponlas en `public/blog/` y referencia `image: /blog/nombre.jpg`. Lo ideal es
-**1200×630** — es la proporción que usan las tarjetas de Twitter, WhatsApp y
-LinkedIn. Una imagen cuadrada funciona, pero se recorta.
+**Si no pones ninguna, se usa la portada con el logo** (`/blog/portada.png`), así
+que ningún artículo se queda sin imagen.
 
-Si no pones imagen, no pasa nada: la tarjeta del listado muestra una franja con
-el degradado de la marca y al compartir se usa la imagen general del sitio.
+Para una propia, ponla en `public/blog/` y referencia `image: /blog/nombre.jpg`.
+Lo ideal es **1200×630**: es la proporción que usan las tarjetas de Twitter,
+WhatsApp y LinkedIn. Una imagen cuadrada funciona, pero se recorta.
+
+### Sobre las preguntas frecuentes
+
+El bloque `faq` no es decorativo: genera el esquema `FAQPage` que Google puede
+usar para desplegar las preguntas directamente en los resultados de búsqueda.
+Tres o cuatro preguntas reales, con respuestas de una o dos frases que se
+entiendan sin leer el artículo, es lo que mejor funciona.
 
 ---
 
@@ -105,7 +117,14 @@ Texto normal con **negrita**, *cursiva* y [enlaces](https://ejemplo.com).
 ```
 
 Cada `##` y `###` genera automáticamente un enlace a sí mismo, así que se puede
-compartir un punto concreto del artículo.
+compartir un punto concreto del artículo. Los `##` forman además el índice que
+aparece al principio.
+
+**Los enlaces externos salen solos con `rel="nofollow noopener noreferrer"` y se
+abren en otra pestaña.** Citar una fuente da contexto al lector, pero no tiene
+por qué regalarle autoridad de dominio. Los enlaces internos (a `/blog/…` o a
+`/coin/…`) no llevan `nofollow`: esos sí queremos que transmitan autoridad, y son
+la forma principal de que los artículos se refuercen entre sí.
 
 ---
 
@@ -128,11 +147,14 @@ Al añadir un `.md` y desplegar:
 - Aparece en `/blog`, arriba del todo si es el más reciente.
 - Se genera su página en `/blog/su-slug`, **pre-renderizada como HTML estático**
   en el build (por eso carga instantánea y Google la indexa sin ejecutar JavaScript).
-- Sus tags generan o alimentan sus páginas de categoría.
 - Entra en `sitemap.xml` con su fecha real de publicación.
-- Se generan sus etiquetas Open Graph y su JSON-LD de tipo `BlogPosting`, que es
-  lo que Google lee para mostrar fecha y autor en los resultados.
-- Aparece en "Sigue leyendo" de los artículos con los que comparte tags.
+- Se generan sus etiquetas Open Graph y tres esquemas de datos estructurados:
+  `BlogPosting` (fecha y autor en el resultado), `BreadcrumbList` (la ruta bajo
+  el titular) y `FAQPage` si hay preguntas.
+- Se monta su índice a partir de los `##`, si hay tres o más.
+- Se abre su hilo de comentarios, donde los usuarios registrados pueden
+  responder y dar likes igual que en las fichas de las monedas.
+- Aparece en "Sigue leyendo" del resto de artículos.
 
 ---
 

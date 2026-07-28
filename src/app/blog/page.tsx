@@ -1,65 +1,83 @@
 import type { Metadata } from "next";
 
 import { PostCard } from "@/components/blog/post-card";
-import { TagPill } from "@/components/blog/tag-pill";
-import { getAllPosts, getAllTags } from "@/lib/blog";
+import { getAllPosts } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Blog sobre meme coins: guías, análisis e historia",
   description:
-    "Análisis, historia y contexto de las meme coins: de dónde salen, por qué se mueven y qué dice la comunidad.",
+    "Guías claras sobre meme coins: cómo funcionan, cómo se leen sus métricas, de dónde salen Dogecoin, Shiba Inu, Pepe o Bonk y qué mirar antes de entrar.",
   alternates: { canonical: "/blog" },
   openGraph: {
-    title: "Blog · Memecoin Plaza",
-    description: "Análisis, historia y contexto de las meme coins.",
+    title: "Blog sobre meme coins · Memecoin Plaza",
+    description:
+      "Guías claras sobre meme coins: cómo funcionan, cómo se leen sus métricas y qué mirar antes de entrar.",
     url: `${SITE_URL}/blog`,
     type: "website",
   },
 };
 
 export default async function BlogPage() {
-  const [posts, tags] = await Promise.all([getAllPosts(), getAllTags()]);
-
+  const posts = await getAllPosts();
   const [destacado, ...resto] = posts;
 
+  /**
+   * `Blog` + `ItemList` con todos los artículos: le da a Google la lista
+   * completa desde una sola página, sin depender de que rastree cada enlace.
+   */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Blog de Memecoin Plaza",
+    description:
+      "Guías, análisis e historia de las meme coins, en español y sin recomendaciones de compra.",
+    url: `${SITE_URL}/blog`,
+    inLanguage: "es-ES",
+    publisher: { "@type": "Organization", name: "Memecoin Plaza", url: SITE_URL },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      dateModified: post.updated ?? post.date,
+      url: `${SITE_URL}/blog/${post.slug}`,
+    })),
+  };
+
   return (
-    <div className="shell py-10 md:py-14">
-      <header className="mb-8 max-w-2xl">
-        <p className="eyebrow mb-2">El blog</p>
-        <h1 className="font-display text-display-lg">Para entender el circo</h1>
-        <p className="mt-3 text-lg text-ink-soft">
-          De dónde sale cada moneda, por qué se mueve y qué está pasando en su comunidad. Sin
-          señales de compra ni promesas de retorno.
-        </p>
-      </header>
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {tags.length > 0 && (
-        <nav aria-label="Categorías" className="mb-8 flex flex-wrap gap-2">
-          {tags.map(({ tag, count }) => (
-            <TagPill key={tag} tag={tag} count={count} />
-          ))}
-        </nav>
-      )}
+      <div className="shell py-10 md:py-14">
+        <header className="mb-10 max-w-2xl">
+          <p className="eyebrow mb-2">El blog</p>
+          <h1 className="font-display text-display-lg">Para entender el circo</h1>
+          <p className="mt-3 text-lg text-ink-soft">
+            De dónde sale cada moneda, por qué se mueve y qué mirar antes de entrar. Explicado en
+            castellano, sin señales de compra y sin promesas de retorno.
+          </p>
+        </header>
 
-      {posts.length === 0 ? (
-        <p className="surface-card p-10 text-center text-ink-faint">
-          Todavía no hay artículos publicados. Vuelve pronto.
-        </p>
-      ) : (
-        <div className="space-y-6">
-          {/* El más reciente ocupa el ancho completo: da un punto de entrada claro. */}
-          <PostCard post={destacado} destacado />
+        {posts.length === 0 ? (
+          <p className="surface-card p-10 text-center text-ink-faint">
+            Todavía no hay artículos publicados. Vuelve pronto.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {/* El más reciente ocupa el ancho completo: da un punto de entrada claro. */}
+            <PostCard post={destacado} destacado />
 
-          {resto.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {resto.map((post) => (
-                <PostCard key={post.slug} post={post} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+            {resto.length > 0 && (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {resto.map((post) => (
+                  <PostCard key={post.slug} post={post} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

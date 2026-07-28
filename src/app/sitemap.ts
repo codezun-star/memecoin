@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { TRACKED_COINS } from "@/lib/coins";
-import { getAllPosts, getAllTags } from "@/lib/blog";
+import { getAllPosts } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site-config";
 
 /**
@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
 
   // Los artículos entran solos: publicar un .md lo añade al sitemap.
-  const [posts, tags] = await Promise.all([getAllPosts(), getAllTags()]);
+  const posts = await getAllPosts();
 
   return [
     {
@@ -41,12 +41,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(post.updated ?? post.date),
       changeFrequency: "monthly" as const,
       priority: 0.7,
-    })),
-    ...tags.map((tag) => ({
-      url: `${SITE_URL}/blog/categoria/${tag.slug}`,
-      lastModified: ahora,
-      changeFrequency: "weekly" as const,
-      priority: 0.4,
     })),
     {
       url: `${SITE_URL}/signup`,

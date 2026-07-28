@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { createComment, type CommentState } from "@/app/actions/comments";
+import type { CommentTarget } from "@/lib/comment-target";
 
 const MAX_BODY = 2000;
 
@@ -20,7 +21,7 @@ function SubmitButton({ label }: { label: string }) {
 }
 
 export function CommentForm({
-  slug,
+  target,
   parentId,
   username,
   avatarUrl,
@@ -29,7 +30,7 @@ export function CommentForm({
   submitLabel = "Publicar",
   onDone,
 }: {
-  slug: string;
+  target: CommentTarget;
   parentId?: string;
   username: string;
   avatarUrl: string | null;
@@ -58,7 +59,8 @@ export function CommentForm({
       <Avatar username={username} avatarUrl={avatarUrl} size="sm" className="mt-1" />
 
       <div className="min-w-0 flex-1 space-y-2">
-        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="targetKind" value={target.kind} />
+        <input type="hidden" name="targetId" value={target.id} />
         {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
 
         <Textarea

@@ -6,6 +6,7 @@ import { Heart } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { toggleLike } from "@/app/actions/comments";
+import { targetPath, type CommentTarget } from "@/lib/comment-target";
 
 /**
  * Like con actualización optimista: el corazón responde al instante y solo se
@@ -13,13 +14,13 @@ import { toggleLike } from "@/app/actions/comments";
  */
 export function LikeButton({
   commentId,
-  slug,
+  target,
   initialLiked,
   initialCount,
   canLike,
 }: {
   commentId: string;
-  slug: string;
+  target: CommentTarget;
   initialLiked: boolean;
   initialCount: number;
   canLike: boolean;
@@ -32,7 +33,7 @@ export function LikeButton({
 
   function handleClick() {
     if (!canLike) {
-      router.push(`/login?next=/coin/${slug}`);
+      router.push(`/login?next=${encodeURIComponent(targetPath(target))}`);
       return;
     }
 
@@ -42,7 +43,7 @@ export function LikeButton({
     if (nextLiked) setPopKey((k) => k + 1);
 
     startTransition(async () => {
-      const result = await toggleLike(commentId, slug);
+      const result = await toggleLike(commentId, target);
       if (result.error) {
         // Revertimos al estado que dice el servidor.
         setLiked(result.liked);

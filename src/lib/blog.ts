@@ -12,19 +12,30 @@ import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings, { type Options as AutolinkOptions } from "rehype-autolink-headings";
+import rehypeExternalLinks from "rehype-external-links";
 import rehypeStringify from "rehype-stringify";
 
 /**
  * Blog en ficheros markdown.
  *
- * Vive entero en `content/blog/`. No toca la base de datos ni la autenticación:
- * publicar es añadir un `.md` y desplegar. Todo se resuelve en tiempo de build,
+ * Vive entero en `content/blog/`. No toca la base de datos para el contenido:
+ * publicar es añadir un `.md` y desplegar, y todo se resuelve en tiempo de build,
  * así que las páginas salen como HTML estático.
+ *
+ * (Los comentarios de los artículos sí usan Supabase, pero son un añadido
+ * opcional encima: el artículo se renderiza igual sin ellos.)
  *
  * El proceso de publicación está documentado en BLOG.md.
  */
 
 export const BLOG_DIR = path.join(process.cwd(), "content", "blog");
+
+/** Portada por defecto: el logo sobre el fondo de marca, en 1200x630. */
+export const PORTADA_POR_DEFECTO = "/blog/portada.png";
+
+const AUTOR_POR_DEFECTO = "Memecoin Plaza";
+
+export type FaqItem = { pregunta: string; respuesta: string };
 
 export type PostMeta = {
   slug: string;
@@ -33,37 +44,52 @@ export type PostMeta = {
   /** ISO 8601. Se usa tal cual en el JSON-LD y en <time dateTime>. */
   date: string;
   updated?: string;
-  image?: string;
-  imageAlt?: string;
-  tags: string[];
+  image: string;
+  imageAlt: string;
+  /** Palabras clave. No se muestran: alimentan la metadata. */
+  keywords: string[];
   author: string;
   draft: boolean;
   readingMinutes: number;
+  /** Preguntas frecuentes. Generan el JSON-LD de tipo FAQPage. */
+  faq: FaqItem[];
 };
+
+export type Heading = { id: string; text: string; level: 2 | 3 };
 
 export type Post = PostMeta & {
   /** HTML ya renderizado a partir del markdown. */
   html: string;
+  /** Índice del artículo, extraído de los encabezados. */
+  headings: Heading[];
 };
-
-const AUTOR_POR_DEFECTO = "Memecoin Plaza";
 
 function esFechaValida(valor: unknown): valor is string | Date {
   if (valor instanceof Date) return !Number.isNaN(valor.getTime());
   return typeof valor === "string" && !Number.isNaN(Date.parse(valor));
 }
 
-function normalizarTags(valor: unknown): string[] {
+function listaDeTextos(valor: unknown): string[] {
   const bruto = Array.isArray(valor) ? valor : typeof valor === "string" ? valor.split(",") : [];
-  const limpios = bruto
-    .map((t) => String(t).trim().toLowerCase())
-    .filter((t) => t.length > 0);
-  return [...new Set(limpios)];
+  return [...new Set(bruto.map((t) => String(t).trim()).filter(Boolean))];
 }
 
-/** Convierte un tag en algo que se pueda poner en una URL: "meme coins" -> "meme-coins". */
-export function tagToSlug(tag: string): string {
-  return tag
+function normalizarFaq(valor: unknown): FaqItem[] {
+  if (!Array.isArray(valor)) return [];
+  return valor
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const { pregunta, respuesta } = item as Record<string, unknown>;
+      if (typeof pregunta !== "string" || typeof respuesta !== "string") return null;
+      return { pregunta: pregunta.trim(), respuesta: respuesta.trim() };
+    })
+    .filter(
+      (item): item is FaqItem => item !== null && item.pregunta !== "" && item.respuesta !== "",
+    );
+}
+
+export function slugify(texto: string): string {
+  return texto
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -92,15 +118,66 @@ async function markdownToHtml(markdown: string): Promise<string> {
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug) // id en cada encabezado
     .use(rehypeAutolinkHeadings, ENLACES_EN_ENCABEZADOS)
+    /**
+     * Todo enlace externo sale con `nofollow` y se abre en otra pestaña.
+     *
+     * Citar una fuente da contexto al lector, pero no tiene por qué regalarle
+     * autoridad de dominio: `nofollow` le dice al buscador que el enlace es una
+     * referencia y no un respaldo. `noopener noreferrer` es además lo mínimo
+     * exigible al abrir en pestaña nueva.
+     */
+    .use(rehypeExternalLinks, {
+      target: "_blank",
+      rel: ["nofollow", "noopener", "noreferrer"],
+      protocols: ["http", "https"],
+    })
     .use(rehypeStringify, { allowDangerousHtml: true })
     .process(markdown);
 
   return String(file);
 }
 
+/**
+ * Índice del artículo a partir de los `##` y `###` del markdown.
+ *
+ * Se extrae del markdown crudo y no del HTML para no recorrer el árbol otra vez;
+ * los ids se calculan igual que los de `rehype-slug`.
+ */
+function extraerHeadings(markdown: string): Heading[] {
+  const headings: Heading[] = [];
+  let dentroDeBloqueDeCodigo = false;
+
+  for (const linea of markdown.split("\n")) {
+    if (linea.trimStart().startsWith("```")) {
+      dentroDeBloqueDeCodigo = !dentroDeBloqueDeCodigo;
+      continue;
+    }
+    if (dentroDeBloqueDeCodigo) continue;
+
+    const match = /^(#{2,3})\s+(.+?)\s*$/.exec(linea);
+    if (!match) continue;
+
+    // Quita el marcado en línea del título: **negrita**, `código`, [enlaces](url)
+    const text = match[2]
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/[*_`]/g, "")
+      .trim();
+
+    headings.push({ id: slugify(text), text, level: match[1].length === 2 ? 2 : 3 });
+  }
+
+  return headings;
+}
+
 function leerFicheros(): string[] {
   if (!fs.existsSync(BLOG_DIR)) return [];
   return fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
+}
+
+function slugDeFichero(fichero: string, data: Record<string, unknown>): string {
+  return typeof data.slug === "string" && data.slug.trim()
+    ? slugify(data.slug)
+    : slugify(fichero.replace(/\.mdx?$/, ""));
 }
 
 /**
@@ -127,35 +204,28 @@ export const getAllPosts = cache(async (): Promise<PostMeta[]> => {
       continue;
     }
 
-    // El slug se puede fijar en el frontmatter; si no, sale del nombre del fichero.
-    const slug =
-      typeof data.slug === "string" && data.slug.trim()
-        ? tagToSlug(data.slug)
-        : tagToSlug(fichero.replace(/\.mdx?$/, ""));
-
     const draft = data.draft === true;
     if (draft && process.env.NODE_ENV === "production") continue;
 
     posts.push({
-      slug,
+      slug: slugDeFichero(fichero, data),
       title,
       description,
       date: new Date(data.date as string | Date).toISOString(),
       updated: esFechaValida(data.updated)
         ? new Date(data.updated as string | Date).toISOString()
         : undefined,
-      image: typeof data.image === "string" ? data.image : undefined,
-      imageAlt: typeof data.imageAlt === "string" ? data.imageAlt : undefined,
-      tags: normalizarTags(data.tags),
+      image: typeof data.image === "string" && data.image ? data.image : PORTADA_POR_DEFECTO,
+      imageAlt: typeof data.imageAlt === "string" ? data.imageAlt : title,
+      keywords: listaDeTextos(data.keywords),
       author: typeof data.author === "string" ? data.author : AUTOR_POR_DEFECTO,
       draft,
       readingMinutes: Math.max(1, Math.round(readingTime(content).minutes)),
+      faq: normalizarFaq(data.faq),
     });
   }
 
-  const duplicados = posts
-    .map((p) => p.slug)
-    .filter((slug, i, todos) => todos.indexOf(slug) !== i);
+  const duplicados = posts.map((p) => p.slug).filter((slug, i, todos) => todos.indexOf(slug) !== i);
   if (duplicados.length > 0) {
     console.warn(`[blog] slugs duplicados: ${[...new Set(duplicados)].join(", ")}`);
   }
@@ -169,43 +239,19 @@ export const getPost = cache(async (slug: string): Promise<Post | null> => {
     const ruta = path.join(BLOG_DIR, fichero);
     const { data, content } = matter(fs.readFileSync(ruta, "utf8"));
 
-    const slugFichero =
-      typeof data.slug === "string" && data.slug.trim()
-        ? tagToSlug(data.slug)
-        : tagToSlug(fichero.replace(/\.mdx?$/, ""));
-
-    if (slugFichero !== slug) continue;
+    if (slugDeFichero(fichero, data) !== slug) continue;
 
     const meta = (await getAllPosts()).find((p) => p.slug === slug);
     if (!meta) return null;
 
-    return { ...meta, html: await markdownToHtml(content) };
+    return {
+      ...meta,
+      html: await markdownToHtml(content),
+      headings: extraerHeadings(content),
+    };
   }
 
   return null;
-});
-
-export type TagConCuenta = { tag: string; slug: string; count: number };
-
-/** Todos los tags en uso, del más frecuente al menos. */
-export const getAllTags = cache(async (): Promise<TagConCuenta[]> => {
-  const posts = await getAllPosts();
-  const cuentas = new Map<string, number>();
-
-  for (const post of posts) {
-    for (const tag of post.tags) {
-      cuentas.set(tag, (cuentas.get(tag) ?? 0) + 1);
-    }
-  }
-
-  return [...cuentas.entries()]
-    .map(([tag, count]) => ({ tag, slug: tagToSlug(tag), count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
-});
-
-export const getPostsByTag = cache(async (tagSlug: string): Promise<PostMeta[]> => {
-  const posts = await getAllPosts();
-  return posts.filter((post) => post.tags.some((t) => tagToSlug(t) === tagSlug));
 });
 
 /** Fecha legible en español: "12 de marzo de 2026". */

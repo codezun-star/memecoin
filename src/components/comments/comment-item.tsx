@@ -8,6 +8,7 @@ import { RelativeTime } from "@/components/relative-time";
 import { CommentForm } from "@/components/comments/comment-form";
 import { LikeButton } from "@/components/comments/like-button";
 import { deleteComment, type CommentState } from "@/app/actions/comments";
+import { targetPath, type CommentTarget } from "@/lib/comment-target";
 import type { ThreadComment } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -15,12 +16,12 @@ type Viewer = { id: string; username: string; avatarUrl: string | null } | null;
 
 export function CommentItem({
   comment,
-  slug,
+  target,
   viewer,
   isReply = false,
 }: {
   comment: ThreadComment;
-  slug: string;
+  target: CommentTarget;
   viewer: Viewer;
   isReply?: boolean;
 }) {
@@ -34,7 +35,7 @@ export function CommentItem({
         {comment.replies.length > 0 && (
           <ul className="mt-2 divide-y divide-line border-l border-line pl-4">
             {comment.replies.map((reply) => (
-              <CommentItem key={reply.id} comment={reply} slug={slug} viewer={viewer} isReply />
+              <CommentItem key={reply.id} comment={reply} target={target} viewer={viewer} isReply />
             ))}
           </ul>
         )}
@@ -69,7 +70,7 @@ export function CommentItem({
           <div className="mt-2 flex flex-wrap items-center gap-1">
             <LikeButton
               commentId={comment.id}
-              slug={slug}
+              target={target}
               initialLiked={comment.likedByMe}
               initialCount={comment.likeCount}
               canLike={viewer !== null}
@@ -89,7 +90,8 @@ export function CommentItem({
 
             {comment.isMine && (
               <form action={deleteAction} className="contents">
-                <input type="hidden" name="slug" value={slug} />
+                <input type="hidden" name="targetKind" value={target.kind} />
+                <input type="hidden" name="targetId" value={target.id} />
                 <input type="hidden" name="id" value={comment.id} />
                 <button
                   type="submit"
@@ -114,7 +116,7 @@ export function CommentItem({
           {replying && viewer && (
             <div className="mt-4">
               <CommentForm
-                slug={slug}
+                target={target}
                 parentId={comment.id}
                 username={viewer.username}
                 avatarUrl={viewer.avatarUrl}
@@ -128,7 +130,7 @@ export function CommentItem({
 
           {replying && !viewer && (
             <p className="mt-3 text-sm text-ink-faint">
-              <a href={`/login?next=/coin/${slug}`} className="text-brand-strong hover:underline">
+              <a href={`/login?next=${encodeURIComponent(targetPath(target))}`} className="text-brand-strong hover:underline">
                 Inicia sesión
               </a>{" "}
               para responder.
@@ -138,7 +140,7 @@ export function CommentItem({
           {comment.replies.length > 0 && (
             <ul className="mt-3 divide-y divide-line border-l border-line pl-4">
               {comment.replies.map((reply) => (
-                <CommentItem key={reply.id} comment={reply} slug={slug} viewer={viewer} isReply />
+                <CommentItem key={reply.id} comment={reply} target={target} viewer={viewer} isReply />
               ))}
             </ul>
           )}

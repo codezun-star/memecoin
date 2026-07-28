@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { COIN_IDS } from "@/lib/coins";
+import type { CommentTarget } from "@/lib/comment-target";
 import type { ThreadComment } from "@/types/database";
 
 type RawComment = {
@@ -23,17 +24,18 @@ const SELECT =
  * punto de vista del usuario que mira (`likedByMe`, `isMine`).
  */
 export async function getThread(
-  coinId: string,
+  target: CommentTarget,
   viewerId: string | null,
 ): Promise<ThreadComment[]> {
   if (!isSupabaseConfigured) return [];
 
   const supabase = await createClient();
+  const columna = target.kind === "coin" ? "coin_id" : "post_slug";
 
   const { data, error } = await supabase
     .from("comments")
     .select(SELECT)
-    .eq("coin_id", coinId)
+    .eq(columna, target.id)
     .order("created_at", { ascending: true })
     .limit(300)
     .returns<RawComment[]>();

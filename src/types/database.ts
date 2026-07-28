@@ -72,7 +72,9 @@ export type Database = {
       comments: {
         Row: {
           id: string;
-          coin_id: string;
+          /** Una de las dos, nunca ambas: ver 0003_blog_comments.sql */
+          coin_id: string | null;
+          post_slug: string | null;
           user_id: string;
           parent_id: string | null;
           body: string;
@@ -83,7 +85,8 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          coin_id: string;
+          coin_id?: string | null;
+          post_slug?: string | null;
           user_id: string;
           parent_id?: string | null;
           body: string;

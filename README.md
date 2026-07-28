@@ -24,7 +24,8 @@ un tracker de precios y un foro, con **20 meme coins** trackeadas.
 | Likes en comentarios (con actualización optimista) | ✅ |
 | Borrado de los comentarios propios | ✅ |
 | Esquema SQL con RLS, triggers, permisos y seed | ✅ |
-| Blog en markdown, pre-renderizado y con JSON-LD | ✅ |
+| Blog en markdown: 20 artículos pre-renderizados | ✅ |
+| Comentarios y likes también en los artículos | ✅ |
 | PWA instalable (sin modo offline, a propósito) | ✅ |
 
 ---
@@ -346,18 +347,23 @@ ejecuta el script y commitea los ficheros generados.
 
 ## Blog
 
-Vive entero en `content/blog/` como ficheros markdown. **No usa la base de datos
-ni la autenticación**: es independiente del sistema de comentarios. Publicar un
-artículo es añadir un `.md` y desplegar.
+El contenido vive entero en `content/blog/` como ficheros markdown: publicar es
+añadir un `.md` y desplegar, sin base de datos y sin panel. Los comentarios de los
+artículos sí reutilizan Supabase, con la misma interfaz y los mismos likes que las
+fichas de monedas.
 
 Cada artículo se pre-renderiza como HTML estático en el build
 (`generateStaticParams` + `generateMetadata`), que es lo que hace que cargue al
 instante y que Google lo indexe sin ejecutar JavaScript.
 
 Lo que se genera solo al añadir un fichero: su página, su entrada en el listado,
-sus páginas de categoría, su sitio en el `sitemap.xml` con la fecha real del
-artículo, sus etiquetas Open Graph y un JSON-LD de tipo `BlogPosting` para los
-resultados enriquecidos de Google.
+su sitio en el `sitemap.xml` con la fecha real del artículo, su índice a partir de
+los encabezados, sus etiquetas Open Graph y tres esquemas de datos estructurados
+(`BlogPosting`, `BreadcrumbList` y `FAQPage` si el artículo trae preguntas).
+
+Los enlaces externos reciben `rel="nofollow noopener noreferrer"` de forma
+automática: citar una fuente da contexto sin regalarle autoridad de dominio. Los
+internos no lo llevan, porque son los que refuerzan el propio sitio.
 
 **El proceso exacto de publicación está en [BLOG.md](BLOG.md)** — formato del
 frontmatter, campos disponibles, tamaño recomendado de las imágenes y cómo ver

@@ -40,6 +40,7 @@ end $$;
 \echo '>>> Ejecutando la migración'
 \ir ../migrations/0001_init.sql
 \ir ../migrations/0002_more_coins.sql
+\ir ../migrations/0003_blog_comments.sql
 \echo '>>> Migraciones OK'
 
 -- ---------------------------------------------------------------------------
@@ -202,5 +203,45 @@ exception when insufficient_privilege then raise notice 'OK: catálogo de moneda
 end $$;
 
 reset role;
+
+-- ---------------------------------------------------------------------------
+\echo ''
+\echo '### 20. Un comentario puede colgar de un artículo del blog'
+insert into public.comments (id, post_slug, user_id, body)
+values ('bbbbbbbb-0000-0000-0000-000000000001', 'guia-meme-coins',
+        '11111111-1111-1111-1111-111111111111', 'Buen artículo');
+select post_slug, coin_id is null as sin_moneda
+  from public.comments where id = 'bbbbbbbb-0000-0000-0000-000000000001';
+
+\echo '### 21. No puede apuntar a los dos destinos a la vez'
+do $$ begin
+  insert into public.comments (coin_id, post_slug, user_id, body)
+  values ('pepe', 'guia-meme-coins', '11111111-1111-1111-1111-111111111111', 'los dos');
+  raise exception 'FALLO: se permitieron moneda y artículo a la vez';
+exception when check_violation then raise notice 'OK: destino doble rechazado';
+end $$;
+
+\echo '### 22. Ni quedarse sin destino'
+do $$ begin
+  insert into public.comments (user_id, body)
+  values ('11111111-1111-1111-1111-111111111111', 'huérfano');
+  raise exception 'FALLO: se permitió un comentario sin destino';
+exception when check_violation then raise notice 'OK: comentario sin destino rechazado';
+end $$;
+
+\echo '### 23. Una respuesta no puede saltar de un artículo a una moneda'
+do $$ begin
+  insert into public.comments (coin_id, user_id, parent_id, body)
+  values ('pepe', '22222222-2222-2222-2222-222222222222',
+          'bbbbbbbb-0000-0000-0000-000000000001', 'cruzando hilos');
+  raise exception 'FALLO: se permitió cruzar de artículo a moneda';
+exception when others then raise notice 'OK: rechazado -> %', sqlerrm;
+end $$;
+
+\echo '### 24. Los likes funcionan igual en un artículo'
+insert into public.comment_likes (comment_id, user_id)
+values ('bbbbbbbb-0000-0000-0000-000000000001', '33333333-3333-3333-3333-333333333333');
+select like_count from public.comments where id = 'bbbbbbbb-0000-0000-0000-000000000001';
+
 \echo ''
 \echo '>>> TODAS LAS PRUEBAS TERMINADAS'

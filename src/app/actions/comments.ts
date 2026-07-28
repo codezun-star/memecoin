@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { getCoinBySlug } from "@/lib/coins";
+import {
+  isCommentTargetKind,
+  targetColumns,
+  targetPath,
+  type CommentTarget,
+} from "@/lib/comment-target";
 
 export type CommentState = {
   error?: string;
@@ -27,17 +32,24 @@ async function requireUser() {
   return { supabase, user };
 }
 
+/** Lee el destino del formulario. Devuelve null si no es válido. */
+function leerTarget(formData: FormData): CommentTarget | null {
+  const kind = String(formData.get("targetKind") ?? "");
+  const id = String(formData.get("targetId") ?? "").trim();
+  if (!isCommentTargetKind(kind) || !id) return null;
+  return { kind, id };
+}
+
 export async function createComment(
   _prev: CommentState,
   formData: FormData,
 ): Promise<CommentState> {
-  const slug = String(formData.get("slug") ?? "");
   const body = String(formData.get("body") ?? "").trim();
   const rawParent = String(formData.get("parentId") ?? "");
   const parentId = rawParent.length > 0 ? rawParent : null;
 
-  const coin = getCoinBySlug(slug);
-  if (!coin) return { error: "Moneda desconocida." };
+  const target = leerTarget(formData);
+  if (!target) return { error: "Petición inválida." };
   if (!body) return { error: "Escribe algo antes de publicar." };
   if (body.length > MAX_BODY) return { error: `Máximo ${MAX_BODY} caracteres.` };
 
@@ -45,7 +57,7 @@ export async function createComment(
   if ("error" in auth) return { error: auth.error };
 
   const { error } = await auth.supabase.from("comments").insert({
-    coin_id: coin.id,
+    ...targetColumns(target),
     user_id: auth.user.id,
     parent_id: parentId,
     body,
@@ -56,7 +68,7 @@ export async function createComment(
     return { error: "No hemos podido publicar tu comentario. Inténtalo otra vez." };
   }
 
-  revalidatePath(`/coin/${coin.slug}`);
+  revalidatePath(targetPath(target));
   return { ok: true };
 }
 
@@ -64,11 +76,9 @@ export async function deleteComment(
   _prev: CommentState,
   formData: FormData,
 ): Promise<CommentState> {
-  const slug = String(formData.get("slug") ?? "");
   const id = String(formData.get("id") ?? "");
-
-  const coin = getCoinBySlug(slug);
-  if (!coin || !id) return { error: "Petición inválida." };
+  const target = leerTarget(formData);
+  if (!target || !id) return { error: "Petición inválida." };
 
   const auth = await requireUser();
   if ("error" in auth) return { error: auth.error };
@@ -95,14 +105,14 @@ export async function deleteComment(
     return { error: "No hemos podido borrar el comentario." };
   }
 
-  revalidatePath(`/coin/${coin.slug}`);
+  revalidatePath(targetPath(target));
   return { ok: true };
 }
 
 /** Alterna el like del usuario actual. Devuelve el estado real tras la operación. */
 export async function toggleLike(
   commentId: string,
-  slug: string,
+  target: CommentTarget,
 ): Promise<{ liked: boolean; error?: string }> {
   const auth = await requireUser();
   if ("error" in auth) return { liked: false, error: auth.error };
@@ -128,8 +138,7 @@ export async function toggleLike(
     if (error) return { liked: false, error: "No se ha podido dar el like." };
   }
 
-  const coin = getCoinBySlug(slug);
-  if (coin) revalidatePath(`/coin/${coin.slug}`);
+  revalidatePath(targetPath(target));
 
   return { liked: !existing };
 }

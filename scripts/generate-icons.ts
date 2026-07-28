@@ -80,6 +80,15 @@ async function main() {
     .png({ compressionLevel: 9 })
     .toFile(path.join(ROOT, "public", "logo-mark.png"));
 
+  // Portada por defecto de los artículos del blog. Misma composición que la
+  // tarjeta social: el logo cuadrado recortado en una tarjeta apaisada se ve mal.
+  const BLOG_DIR = path.join(ROOT, "public", "blog");
+  await mkdir(BLOG_DIR, { recursive: true });
+  await sharp(fondo)
+    .composite([{ input: logo, top: 96, left: Math.round((1200 - LOGO_SIZE) / 2) }])
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(BLOG_DIR, "portada.png"));
+
   // --- Iconos de la PWA -----------------------------------------------------
   const ICONS_DIR = path.join(ROOT, "public", "icons");
   await mkdir(ICONS_DIR, { recursive: true });

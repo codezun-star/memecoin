@@ -129,7 +129,10 @@ export default async function CoinPage({
         </section>
 
         <Suspense fallback={<ThreadSkeleton />}>
-          <CommentThread coin={coin} />
+          <CommentThread
+            target={{ kind: "coin", id: coin.id }}
+            vacio={`Nadie ha dicho nada todavía sobre ${coin.name}. Sé el primero.`}
+          />
         </Suspense>
       </div>
     </LiveMarketsProvider>
