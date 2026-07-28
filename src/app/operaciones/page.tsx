@@ -53,7 +53,12 @@ const FAQ: FaqItem[] = [
   {
     pregunta: "¿Estas operaciones son de todo el mercado?",
     respuesta:
-      "No. El flujo procede de un único mercado, así que no recoge lo que se opera en el resto de plataformas ni en los intercambios descentralizados. Sirve para ver el pulso de la actividad, no para medir el volumen total del sector.",
+      "No. Cada moneda trae el flujo de un único mercado, así que no recoge lo que se opera en el resto de plataformas ni en los intercambios descentralizados. Sirve para ver el pulso de la actividad, no para medir el volumen total del sector.",
+  },
+  {
+    pregunta: "¿Por qué unas monedas van por un mercado y otras por otro?",
+    respuesta:
+      "Porque el mercado con más volumen solo lista las meme coins grandes. Siete de las veinte que seguimos no cotizan ahí en contado, así que su flujo viene de un segundo mercado que sí las lista. La cinta las mezcla sin distinguirlas: una operación es una operación venga de donde venga.",
   },
   {
     pregunta: "¿Por qué a veces pone «En diferido»?",
@@ -120,9 +125,14 @@ export default async function OperacionesPage() {
             volumen total.
           </p>
           <p>
-            El flujo viene de <strong className="text-ink">un solo mercado</strong>, así que no
-            recoge lo que se opera en el resto de plataformas ni en los intercambios
+            Cada moneda trae el flujo de <strong className="text-ink">un solo mercado</strong>, así
+            que no recoge lo que se opera en el resto de plataformas ni en los intercambios
             descentralizados. Sirve para ver el pulso, no para medir el volumen del sector.
+          </p>
+          <p>
+            No todas van por el mismo sitio: el mercado con más volumen solo lista las meme coins
+            grandes, así que siete de las veinte vienen de un segundo mercado que sí las tiene. La
+            cinta las mezcla sin distinguirlas.
           </p>
           <p>
             La conexión la abre tu propio navegador. Si tu red la bloquea —pasa en oficinas y en

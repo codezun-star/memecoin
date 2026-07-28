@@ -95,6 +95,7 @@ const COINS = [
     accent: "#3B6BF5",
     accentInk: "#3165FA",
     featured: false,
+    gatePair: "BRETT_USDT",
     tagline: "El colega de Pepe",
     blurb:
       "Personaje del mismo cómic que Pepe, convertido en la meme coin insignia de la red Base en 2024.",
@@ -118,6 +119,7 @@ const COINS = [
     accent: "#E94BD6",
     accentInk: "#CE14B8",
     featured: false,
+    gatePair: "MOG_USDT",
     tagline: "Estética vaporwave",
     blurb:
       "Meme coin de Ethereum construida alrededor de la cultura del 'mogging' y una estética retro muy reconocible.",
@@ -141,6 +143,7 @@ const COINS = [
     accent: "#58B7F0",
     accentInk: "#0C77B7",
     featured: false,
+    gatePair: "BABYDOGE_USDT",
     tagline: "El cachorro",
     blurb:
       "Derivada de la comunidad de Dogecoin en 2021, destaca por tener una de las bases de holders más grandes del sector.",
@@ -152,6 +155,7 @@ const COINS = [
     accent: "#9DC42B",
     accentInk: "#627B18",
     featured: false,
+    gatePair: "SPX_USDT",
     tagline: "Deja de operar, cree",
     blurb:
       "Parodia del índice S&P 500 cuya única propuesta es superarlo. El chiste es la tesis de inversión.",
@@ -163,6 +167,7 @@ const COINS = [
     accent: "#E8C93A",
     accentInk: "#87710C",
     featured: false,
+    gatePair: "FARTCOIN_USDT",
     tagline: "Sin comentarios",
     blurb:
       "Surgida a finales de 2024 del ecosistema de agentes de IA en Solana. El nombre lo dice todo.",
@@ -186,6 +191,7 @@ const COINS = [
     accent: "#24C4A0",
     accentInk: "#147F67",
     featured: false,
+    gatePair: "GOAT_USDT",
     tagline: "La moneda del bot",
     blurb:
       "La primera meme coin impulsada por un agente de inteligencia artificial, Truth Terminal, en octubre de 2024.",
@@ -245,6 +251,7 @@ const COINS = [
     accent: "#7CB342",
     accentInk: "#557D2B",
     featured: false,
+    gatePair: "APU_USDT",
     tagline: "El amigo de Pepe",
     blurb:
       "Otra rana del mismo universo de cómics que Pepe, con su propia comunidad en Ethereum.",
@@ -265,14 +272,39 @@ export type TrackedCoin = {
   /** Se muestra en la navegación de la cabecera y en el pie. */
   featured: boolean;
   /**
-   * Par de Binance para el flujo de operaciones en vivo, en minúsculas.
-   * Ausente = la moneda no aparece en la cinta de operaciones.
+   * Par del mercado principal, en minúsculas y sin separador (`dogeusdt`).
    * Verifica los símbolos con `npm run pairs:verify` antes de fiarte de ellos.
    */
   tradePair?: string;
+  /**
+   * Par del mercado secundario, en mayúsculas y con guion bajo (`MOG_USDT`).
+   *
+   * Existe porque el mercado principal solo lista las meme coins grandes: siete
+   * de las veinte que seguimos no cotizan ahí en contado. Sin esta segunda
+   * fuente, esas siete aparecerían en la cinta sin emitir nunca una operación,
+   * que es peor que no aparecer.
+   */
+  gatePair?: string;
   tagline: string;
   blurb: string;
 };
+
+/** De dónde sale el flujo de operaciones de una moneda. */
+export type FuenteDeMercado = "binance" | "gate";
+
+export type MercadoDeMoneda = { fuente: FuenteDeMercado; par: string };
+
+/**
+ * Mercado de una moneda, o `null` si no tiene ninguno.
+ *
+ * Se prefiere el principal cuando existe: tiene más profundidad y más
+ * operaciones por segundo, así que la cinta se ve más viva.
+ */
+export function mercadoDe(coin: TrackedCoin): MercadoDeMoneda | null {
+  if (coin.tradePair) return { fuente: "binance", par: coin.tradePair };
+  if (coin.gatePair) return { fuente: "gate", par: coin.gatePair };
+  return null;
+}
 
 /** El slug de la URL es el propio id de CoinGecko: ya es único y legible. */
 export const TRACKED_COINS: TrackedCoin[] = COINS.map((coin) => ({ ...coin, slug: coin.id }));
@@ -281,10 +313,8 @@ export const COIN_IDS: CoinKey[] = TRACKED_COINS.map((c) => c.id as CoinKey);
 
 export const FEATURED_COINS = TRACKED_COINS.filter((c) => c.featured);
 
-/** Monedas con par de mercado, las únicas que pueden aparecer en la cinta en vivo. */
-export const TRADABLE_COINS = TRACKED_COINS.filter(
-  (c): c is TrackedCoin & { tradePair: string } => Boolean(c.tradePair),
-);
+/** Monedas con mercado, las únicas que pueden aparecer en la cinta en vivo. */
+export const TRADABLE_COINS = TRACKED_COINS.filter((c) => mercadoDe(c) !== null);
 
 export function getCoinBySlug(slug: string): TrackedCoin | undefined {
   return TRACKED_COINS.find((c) => c.slug === slug);

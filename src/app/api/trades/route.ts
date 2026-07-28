@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { TRADABLE_COINS } from "@/lib/coins";
-import { normalizarLote, type Trade } from "@/lib/trades";
+import { TRADABLE_COINS, mercadoDe, type FuenteDeMercado } from "@/lib/coins";
+import { normalizarLote, normalizarLoteGate, type Trade } from "@/lib/trades";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +18,34 @@ export const dynamic = "force-dynamic";
  * tiempo real.
  */
 
-/** Se prueban en orden; el primero que responda se recuerda para el siguiente. */
-const HOSTS = process.env.TRADES_REST_BASE
-  ? [process.env.TRADES_REST_BASE]
-  : ["https://data-api.binance.vision", "https://api.binance.com"];
+/**
+ * Un origen por mercado.
+ *
+ * Cada uno tiene su ruta, sus parámetros y su formato de respuesta; lo único
+ * que comparten es que no piden credenciales. Los hosts de cada lista se
+ * prueban en orden y el primero que responda se recuerda para la siguiente.
+ */
+const ORIGENES: Record<
+  FuenteDeMercado,
+  { hosts: string[]; ruta(par: string): string; normalizar(crudo: unknown, coinId: string, par: string): Trade[] }
+> = {
+  binance: {
+    hosts: process.env.TRADES_REST_BASE
+      ? [process.env.TRADES_REST_BASE]
+      : ["https://data-api.binance.vision", "https://api.binance.com"],
+    ruta: (par) => `/api/v3/aggTrades?symbol=${par.toUpperCase()}&limit=${LIMITE}`,
+    normalizar: normalizarLote,
+  },
+  gate: {
+    hosts: process.env.TRADES_REST_BASE_GATE
+      ? [process.env.TRADES_REST_BASE_GATE]
+      : ["https://api.gateio.ws"],
+    ruta: (par) => `/api/v4/spot/trades?currency_pair=${par.toUpperCase()}&limit=${LIMITE}`,
+    normalizar: normalizarLoteGate,
+  },
+};
+
+const hostPreferidoPorFuente: Record<string, number> = {};
 
 /** Operaciones por moneda y vuelta. Suficiente para llenar la cinta sin inflarla. */
 const LIMITE = 20;
@@ -45,31 +69,28 @@ type Entrada = { at: number; trades: Trade[] };
 
 const cache = new Map<string, Entrada>();
 const enVuelo = new Map<string, Promise<Trade[]>>();
-let hostPreferido = 0;
 
-async function pedir(coinId: string, pair: string): Promise<Trade[]> {
-  const symbol = pair.toUpperCase();
+async function pedir(coinId: string, fuente: FuenteDeMercado, par: string): Promise<Trade[]> {
+  const origen = ORIGENES[fuente];
+  const preferido = hostPreferidoPorFuente[fuente] ?? 0;
 
-  for (let salto = 0; salto < HOSTS.length; salto += 1) {
-    const indice = (hostPreferido + salto) % HOSTS.length;
+  for (let salto = 0; salto < origen.hosts.length; salto += 1) {
+    const indice = (preferido + salto) % origen.hosts.length;
 
     try {
-      const respuesta = await fetch(
-        `${HOSTS[indice]}/api/v3/aggTrades?symbol=${symbol}&limit=${LIMITE}`,
-        {
-          cache: "no-store",
-          headers: { accept: "application/json" },
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        },
-      );
+      const respuesta = await fetch(`${origen.hosts[indice]}${origen.ruta(par)}`, {
+        cache: "no-store",
+        headers: { accept: "application/json" },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
 
       if (!respuesta.ok) continue;
 
-      const lote = normalizarLote(await respuesta.json(), coinId, pair);
+      const lote = origen.normalizar(await respuesta.json(), coinId, par);
       if (lote.length === 0) continue;
 
       // Este host va: las siguientes peticiones empiezan por él.
-      hostPreferido = indice;
+      hostPreferidoPorFuente[fuente] = indice;
       return lote;
     } catch {
       // Caída, tiempo agotado o respuesta ilegible: se prueba el siguiente.
@@ -79,7 +100,7 @@ async function pedir(coinId: string, pair: string): Promise<Trade[]> {
   return [];
 }
 
-function traer(coinId: string, pair: string): Promise<Trade[]> {
+function traer(coinId: string, fuente: FuenteDeMercado, par: string): Promise<Trade[]> {
   const ahora = Date.now();
 
   const guardado = cache.get(coinId);
@@ -92,7 +113,7 @@ function traer(coinId: string, pair: string): Promise<Trade[]> {
   const yaEnVuelo = enVuelo.get(coinId);
   if (yaEnVuelo) return yaEnVuelo;
 
-  const promesa = pedir(coinId, pair)
+  const promesa = pedir(coinId, fuente, par)
     .then((trades) => {
       // Un fallo puntual no debe borrar lo último bueno.
       if (trades.length === 0 && guardado) return guardado.trades;
@@ -123,7 +144,14 @@ export async function GET(request: Request) {
     return responder([]);
   }
 
-  const lotes = await Promise.all(monedas.map((c) => traer(c.id, c.tradePair)));
+  const lotes = await Promise.all(
+    monedas.map((c) => {
+      const mercado = mercadoDe(c);
+      // `TRADABLE_COINS` ya garantiza que hay mercado; esto es solo el estrechado
+      // de tipo, y de paso deja la rama explícita si alguien cambia el filtro.
+      return mercado ? traer(c.id, mercado.fuente, mercado.par) : Promise.resolve([]);
+    }),
+  );
 
   return responder(lotes.flat().sort((a, b) => b.timestamp - a.timestamp));
 }

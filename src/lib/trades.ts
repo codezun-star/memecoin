@@ -123,6 +123,82 @@ export function parsearMensaje(raw: unknown, porPar: Map<string, string>): Trade
   return construir(coinId, pair, dato);
 }
 
+/**
+ * Una operación tal y como la manda el mercado secundario.
+ *
+ * Formato distinto al del principal, y en un aspecto para mejor: aquí `side` ya
+ * viene resuelto —dice directamente si el agresor compraba o vendía— en vez de
+ * tener que deducirlo de si el comprador era el creador de la orden.
+ */
+type TradeGate = {
+  id?: number;
+  create_time_ms?: string | number;
+  create_time?: string | number;
+  side?: string;
+  currency_pair?: string;
+  amount?: string;
+  price?: string;
+};
+
+function construirGate(coinId: string, par: string, fila: TradeGate): Trade | null {
+  const price = Number(fila.price);
+  const quantity = Number(fila.amount);
+  if (!Number.isFinite(price) || !Number.isFinite(quantity)) return null;
+  if (price <= 0 || quantity <= 0) return null;
+
+  // El milisegundo llega como cadena con decimales ("1606292218213.45"), y el
+  // de segundos como respaldo cuando no viene el otro.
+  const ms = Number(fila.create_time_ms);
+  const seg = Number(fila.create_time);
+  const timestamp = Number.isFinite(ms) && ms > 0
+    ? Math.round(ms)
+    : Number.isFinite(seg) && seg > 0
+      ? seg * 1000
+      : Date.now();
+
+  return {
+    id: `${par}-${fila.id ?? timestamp}`,
+    coinId,
+    price,
+    quantity,
+    value: price * quantity,
+    timestamp,
+    side: fila.side === "sell" ? "sell" : "buy",
+  };
+}
+
+/** Convierte un mensaje del flujo en directo del mercado secundario. */
+export function parsearMensajeGate(raw: unknown, porPar: Map<string, string>): Trade | null {
+  if (!raw || typeof raw !== "object") return null;
+
+  const sobre = raw as { channel?: unknown; event?: unknown; result?: unknown };
+  // Llegan también confirmaciones de suscripción y respuestas de ping.
+  if (sobre.channel !== "spot.trades" || sobre.event !== "update") return null;
+  if (!sobre.result || typeof sobre.result !== "object") return null;
+
+  const fila = sobre.result as TradeGate;
+  if (typeof fila.currency_pair !== "string") return null;
+
+  const par = fila.currency_pair.toUpperCase();
+  const coinId = porPar.get(par);
+  if (!coinId) return null;
+
+  return construirGate(coinId, par, fila);
+}
+
+/** Convierte un lote pedido al servidor al mercado secundario. */
+export function normalizarLoteGate(raw: unknown, coinId: string, par: string): Trade[] {
+  if (!Array.isArray(raw)) return [];
+
+  const salida: Trade[] = [];
+  for (const fila of raw) {
+    if (!fila || typeof fila !== "object") continue;
+    const trade = construirGate(coinId, par, fila as TradeGate);
+    if (trade) salida.push(trade);
+  }
+  return salida;
+}
+
 /** Convierte un lote pedido al servidor. Nunca lanza: lo que no encaja se cae. */
 export function normalizarLote(raw: unknown, coinId: string, pair: string): Trade[] {
   if (!Array.isArray(raw)) return [];

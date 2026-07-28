@@ -6,7 +6,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 import { CoinLogo } from "@/components/coin-logo";
 import { Button } from "@/components/ui/button";
-import { TRADABLE_COINS } from "@/lib/coins";
+import { TRADABLE_COINS, mercadoDe } from "@/lib/coins";
 import { formatAmount, formatCompact, formatExact, formatPrice } from "@/lib/format";
 import { VISIBLES } from "@/lib/trades";
 import { useLiveTrades, type EstadoConexion } from "@/lib/use-live-trades";
@@ -51,10 +51,10 @@ export function TradeTape({ logos = {} }: { logos?: Record<string, string> }) {
 
   const pares = useMemo(
     () =>
-      TRADABLE_COINS.filter((c) => seleccion.includes(c.id)).map((c) => ({
-        coinId: c.id,
-        pair: c.tradePair,
-      })),
+      TRADABLE_COINS.filter((c) => seleccion.includes(c.id)).flatMap((c) => {
+        const mercado = mercadoDe(c);
+        return mercado ? [{ coinId: c.id, par: mercado.par, fuente: mercado.fuente }] : [];
+      }),
     [seleccion],
   );
 
@@ -315,7 +315,7 @@ export function TradeTape({ logos = {} }: { logos?: Record<string, string> }) {
               {trades.length} últimas.{" "}
             </>
           )}
-          Operaciones de un único mercado, no del total del sector. &ldquo;Compra&rdquo; y
+          Operaciones de un único mercado por moneda, no del total del sector. &ldquo;Compra&rdquo; y
           &ldquo;venta&rdquo; indican quién cruzó el mercado en cada operación.
         </p>
         <Link href="/#mercado">

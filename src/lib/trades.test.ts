@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { MAX_OPERACIONES, fusionar, normalizarLote, parsearMensaje } from "./trades";
+import {
+  MAX_OPERACIONES,
+  fusionar,
+  normalizarLote,
+  normalizarLoteGate,
+  parsearMensaje,
+  parsearMensajeGate,
+} from "./trades";
 
 const POR_PAR = new Map([
   ["dogeusdt", "dogecoin"],
@@ -113,4 +120,118 @@ test("fusionar corta la lista para que no crezca sin límite", () => {
   );
 
   assert.equal(fusionar([], muchas).length, MAX_OPERACIONES);
+});
+
+// ---- Mercado secundario -----------------------------------------------------
+
+const POR_PAR_GATE = new Map([
+  ["MOG_USDT", "mog-coin"],
+  ["GOAT_USDT", "goatseus-maximus"],
+]);
+
+function mensajeGate(extra: Record<string, unknown> = {}) {
+  return {
+    time: 1606292218,
+    channel: "spot.trades",
+    event: "update",
+    result: {
+      id: 309143071,
+      create_time: 1606292218,
+      create_time_ms: "1606292218213.4578",
+      side: "sell",
+      currency_pair: "MOG_USDT",
+      amount: "16.47",
+      price: "0.47",
+      ...extra,
+    },
+  };
+}
+
+test("el mercado secundario trae el lado ya resuelto, sin deducirlo", () => {
+  // En el principal hay que mirar si el comprador era el creador de la orden;
+  // aquí viene dicho, y el mapeo tiene que respetarlo tal cual.
+  assert.equal(parsearMensajeGate(mensajeGate({ side: "sell" }), POR_PAR_GATE)?.side, "sell");
+  assert.equal(parsearMensajeGate(mensajeGate({ side: "buy" }), POR_PAR_GATE)?.side, "buy");
+});
+
+test("parsearMensajeGate resuelve la moneda y los importes", () => {
+  const trade = parsearMensajeGate(mensajeGate(), POR_PAR_GATE);
+  assert.ok(trade);
+  assert.equal(trade.coinId, "mog-coin");
+  assert.equal(trade.price, 0.47);
+  assert.equal(trade.quantity, 16.47);
+  assert.equal(Math.round(trade.value * 100) / 100, 7.74);
+});
+
+test("el milisegundo del secundario llega como cadena con decimales", () => {
+  const trade = parsearMensajeGate(mensajeGate(), POR_PAR_GATE);
+  assert.equal(trade?.timestamp, 1606292218213);
+
+  // Sin milisegundos, se cae a los segundos y se escala.
+  const soloSegundos = parsearMensajeGate(
+    mensajeGate({ create_time_ms: undefined }),
+    POR_PAR_GATE,
+  );
+  assert.equal(soloSegundos?.timestamp, 1606292218000);
+});
+
+test("parsearMensajeGate ignora acuses de suscripción y respuestas de ping", () => {
+  assert.equal(
+    parsearMensajeGate(
+      { time: 1, channel: "spot.trades", event: "subscribe", result: { status: "success" } },
+      POR_PAR_GATE,
+    ),
+    null,
+  );
+  assert.equal(
+    parsearMensajeGate({ time: 1, channel: "spot.pong", event: "update" }, POR_PAR_GATE),
+    null,
+  );
+  // Un par que no seguimos: llegaría por una suscripción vieja tras reconectar.
+  assert.equal(
+    parsearMensajeGate(mensajeGate({ currency_pair: "BTC_USDT" }), POR_PAR_GATE),
+    null,
+  );
+});
+
+test("los dos mercados producen la misma forma de operación", () => {
+  const delPrincipal = parsearMensaje(mensaje(), POR_PAR);
+  const delSecundario = parsearMensajeGate(mensajeGate(), POR_PAR_GATE);
+
+  assert.ok(delPrincipal && delSecundario);
+  assert.deepEqual(Object.keys(delPrincipal).sort(), Object.keys(delSecundario).sort());
+});
+
+test("las operaciones de ambos mercados se fusionan en una sola cinta", () => {
+  const a = parsearMensaje(mensaje({ T: 100 }), POR_PAR)!;
+  const b = parsearMensajeGate(mensajeGate({ id: 7, create_time_ms: "300" }), POR_PAR_GATE)!;
+
+  const cinta = fusionar([a], [b]);
+  assert.equal(cinta.length, 2);
+  // Lo más reciente arriba, venga del mercado que venga.
+  assert.equal(cinta[0].coinId, "mog-coin");
+  assert.equal(cinta[1].coinId, "dogecoin");
+});
+
+test("normalizarLoteGate convierte el formato por lotes del secundario", () => {
+  const lote = normalizarLoteGate(
+    [
+      { id: 1, create_time_ms: "1000", side: "buy", amount: "2", price: "3" },
+      { id: 2, create_time_ms: "2000", side: "sell", amount: "1", price: "5" },
+      { id: 3, create_time_ms: "3000", side: "buy", amount: "no-válido", price: "5" },
+    ],
+    "mog-coin",
+    "MOG_USDT",
+  );
+
+  assert.equal(lote.length, 2, "la fila con importe inválido se descarta");
+  assert.equal(lote[0].id, "MOG_USDT-1");
+  assert.equal(lote[0].value, 6);
+  assert.equal(lote[1].side, "sell");
+});
+
+test("normalizarLoteGate nunca lanza con basura", () => {
+  assert.deepEqual(normalizarLoteGate(null, "mog-coin", "MOG_USDT"), []);
+  assert.deepEqual(normalizarLoteGate({ label: "error" }, "mog-coin", "MOG_USDT"), []);
+  assert.deepEqual(normalizarLoteGate([null, 7, "x"], "mog-coin", "MOG_USDT"), []);
 });

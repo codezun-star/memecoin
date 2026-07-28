@@ -504,9 +504,35 @@ La clasificación entre compra y venta usa el campo del protocolo que indica si 
 comprador era el creador de la orden: si lo era, quien cruzó el mercado fue el
 vendedor. Es la convención estándar de "lado agresor".
 
-Los pares están en `tradePair` dentro de `src/lib/coins.ts`. Un par equivocado no
-da error visible —el flujo simplemente no manda nada para esa moneda—, así que
-hay un script que lo comprueba:
+### Dos mercados, no uno
+
+El mercado con más volumen **solo lista las meme coins grandes**: siete de las
+veinte que seguimos no cotizan ahí en contado. Sin una segunda fuente, esas siete
+aparecerían en la cinta sin emitir nunca una operación, que es peor que no
+aparecer.
+
+Por eso cada moneda declara uno de estos dos en `src/lib/coins.ts`:
+
+| Campo | Mercado | Formato |
+| --- | --- | --- |
+| `tradePair` | principal | minúsculas y sin separador (`dogeusdt`) |
+| `gatePair` | secundario | mayúsculas con guion bajo (`MOG_USDT`) |
+
+`mercadoDe(coin)` resuelve cuál toca y prefiere el principal cuando existe: tiene
+más profundidad y más operaciones por segundo, así que la cinta se ve más viva.
+
+Los dos protocolos son distintos —uno mete los flujos en la URL, el otro los pide
+por mensaje y necesita latido para que no le corten la conexión— pero eso vive
+todo en la tabla `PROTOCOLOS` de `use-live-trades.ts`. La rotación de hosts, la
+reconexión y el respaldo son el mismo código para ambos.
+
+**Cada mercado tiene su propia conexión con su propio ciclo de vida.** Es
+deliberado: cuando colgaban del mismo efecto, tocar una moneda del secundario
+cortaba y reabría también el flujo del principal. Ahora solo se reconecta el
+mercado cuya lista de pares ha cambiado.
+
+Un par equivocado no da error visible —el flujo simplemente no manda nada para
+esa moneda—, así que hay un script que comprueba los dos mercados:
 
 ```bash
 npm run pairs:verify
