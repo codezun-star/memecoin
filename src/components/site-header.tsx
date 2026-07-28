@@ -11,17 +11,22 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-xl">
-      <div className="shell flex h-16 items-center gap-6">
-        <Link href="/" className="group flex items-center gap-2 font-display text-lg font-extrabold">
+      {/* La cabecera crece con el logo: a 64 px en una barra de 64 px quedaría
+          pegado a los bordes. */}
+      <div className="shell flex h-20 items-center gap-6">
+        <Link
+          href="/"
+          className="group flex items-center gap-2.5 font-display text-xl font-extrabold md:text-2xl"
+        >
           {/* No se recorta a círculo: el logo lleva destellos fuera del disco. */}
           <Image
             src="/logo-mark.png"
             alt=""
             aria-hidden
-            width={48}
-            height={48}
+            width={64}
+            height={64}
             priority
-            className="size-11 shrink-0 transition-transform duration-[180ms] group-hover:rotate-[-8deg] md:size-12"
+            className="size-14 shrink-0 transition-transform duration-[180ms] group-hover:rotate-[-8deg] md:size-16"
           />
           <span className="hidden sm:inline">
             Memecoin<span className="text-hype"> Plaza</span>
