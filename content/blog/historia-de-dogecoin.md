@@ -1,6 +1,6 @@
 ---
-title: "Historia de Dogecoin: de chiste de 2013 a la meme coin más longeva"
-description: "Cómo nació Dogecoin, por qué sus creadores se alejaron del proyecto, qué papel jugó la comunidad en su supervivencia y qué la diferencia técnicamente del resto de meme coins."
+title: "Historia de Dogecoin: de chiste de 2013 a la más longeva"
+description: "Cómo nació Dogecoin, por qué sus creadores se alejaron, qué papel jugó la comunidad y qué la diferencia técnicamente del resto."
 date: 2026-04-16
 keywords: [historia de dogecoin, qué es dogecoin, doge criptomoneda, origen dogecoin]
 faq:

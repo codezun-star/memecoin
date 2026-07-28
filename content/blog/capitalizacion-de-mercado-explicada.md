@@ -1,6 +1,6 @@
 ---
-title: "Capitalización de mercado en cripto: qué mide de verdad y qué no"
-description: "Qué es la capitalización de mercado, en qué se diferencia de la valoración totalmente diluida, por qué no equivale al dinero invertido y cómo usarla para comparar dos meme coins."
+title: "Capitalización de mercado: qué mide de verdad y qué no"
+description: "Qué es la capitalización de mercado, en qué se diferencia de la valoración diluida y cómo usarla para comparar dos meme coins."
 date: 2026-06-13
 keywords: [capitalización de mercado cripto, market cap, valoración diluida, comparar criptomonedas]
 faq:

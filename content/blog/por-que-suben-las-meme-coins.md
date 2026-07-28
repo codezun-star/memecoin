@@ -1,6 +1,6 @@
 ---
 title: "Por qué suben las meme coins: los cinco motores reales"
-description: "Atención, acceso, narrativa, reflexividad y liquidez fina. Los cinco mecanismos que mueven el precio de una meme coin, explicados sin misticismo y con lo que cada uno implica."
+description: "Atención, acceso, narrativa, reflexividad y liquidez fina: los cinco mecanismos que mueven el precio de una meme coin, sin misticismo."
 date: 2026-04-02
 keywords: [por qué suben las meme coins, qué mueve el precio cripto, pump meme coin]
 faq:

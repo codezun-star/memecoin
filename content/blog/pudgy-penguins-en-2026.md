@@ -1,6 +1,6 @@
 ---
-title: "Pudgy Penguins en 2026: peluches en Target y un ETF que mezcla token con NFT"
-description: "La solicitud de ETF más rara del sector, con NFT dentro del propio fondo, y una expansión a tiendas físicas. Por qué PENGU juega un partido distinto al del resto de meme coins."
+title: "Pudgy Penguins en 2026: peluches en tiendas y un ETF raro"
+description: "La solicitud de ETF más rara del sector, con NFT dentro del fondo, y una expansión a tiendas físicas. Por qué PENGU juega otro partido."
 date: 2026-07-27
 keywords: [pudgy penguins 2026, PENGU ETF, PENGU noticias, NFT meme coin]
 faq:

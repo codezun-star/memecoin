@@ -28,6 +28,7 @@ un tracker de precios y un foro, con **20 meme coins** trackeadas.
 | Cinta de operaciones en tiempo real (compras y ventas) | ✅ |
 | Comentarios y likes también en los artículos | ✅ |
 | PWA instalable (sin modo offline, a propósito) | ✅ |
+| Ficha larga por moneda (~1.000 palabras) con FAQ y datos estructurados | ✅ |
 
 ---
 
@@ -325,9 +326,69 @@ La API simplemente no devuelve esa moneda y la tarjeta se queda con guiones para
 siempre. El script convierte ese fallo silencioso en uno ruidoso y sale con
 código 1, así que sirve tal cual en CI.
 
+4. Escribe su ficha en `content/monedas/<id>.md` (ver más abajo).
+
 No hay que tocar ninguna pantalla: la home, el detalle y el foro salen del
 registro. Si quieres que aparezca en la cabecera y el pie, marca `featured: true`
 (pero no más de seis: la cabecera se desborda).
+
+La ficha sí conviene escribirla, pero **no bloquea nada**: una moneda sin fichero
+se renderiza igual con sus datos de mercado y su hilo de comentarios. Lo único
+que pierde es el contenido que la hace posicionar por sí sola.
+
+---
+
+## Fichas de las monedas
+
+Cada moneda tiene una ficha larga en `content/monedas/<id>.md`, con el mismo id
+que usa CoinGecko y que es el slug de la URL. Misma mecánica que el blog: son
+ficheros del repositorio, no filas en la base de datos, y se resuelven en el
+build.
+
+Están fuera de `coins.ts` a propósito. Son unas novecientas palabras por moneda;
+metidas en el registro lo convertirían en un fichero de veinte mil líneas donde
+ya no se vería lo que importa —el id, el par, los colores— y editar un párrafo
+obligaría a tocar código.
+
+### Frontmatter
+
+```yaml
+---
+seoTitle: "Dogecoin (DOGE): qué es, cómo funciona y cuántas hay"
+seoDescription: "Qué es Dogecoin, quién la creó, cómo funciona su minería…"
+resumen: "La meme coin más antigua que sigue en pie."
+keywords:
+  - qué es dogecoin
+  - cuántos dogecoin hay
+actualizado: 2026-07-28
+faq:
+  - pregunta: "¿Cuántos Dogecoin hay en circulación?"
+    respuesta: "Más de 140.000 millones, y la cifra sube cada minuto…"
+---
+```
+
+| Campo | Obligatorio | Para qué sirve |
+| --- | --- | --- |
+| `seoTitle` | Sí | El `<title>`. **Máximo 60 caracteres**: se muestra sin el sufijo de marca, así que el espacio es todo tuyo. |
+| `seoDescription` | Sí | La `<meta description>`. Entre 70 y 160 caracteres. |
+| `resumen` | No | Entradilla bajo el titular de la sección. |
+| `keywords` | No | Alimentan la metadata. Mínimo tres, sin repetir. |
+| `actualizado` | No | Fecha de revisión editorial. Es el `lastmod` de esa URL en el sitemap. |
+| `faq` | Sí | Genera el bloque desplegable y el esquema `FAQPage`. Mínimo tres, con respuestas de 80 caracteres o más. |
+
+### Reglas que verifica `npm test`
+
+No son de estilo: son las cosas que se rompen sin dar ningún error al compilar.
+
+- Todas las monedas del registro tienen ficha, y no sobra ninguna huérfana.
+- Los títulos caben en un resultado de búsqueda y las descripciones se muestran
+  enteras.
+- Cada ficha trae al menos tres preguntas con respuestas que dicen algo.
+- El cuerpo pasa de 450 palabras y tiene cuatro o más encabezados `##`.
+- **El cuerpo no lleva `#`**: el `h1` lo pone la página con el nombre de la
+  moneda, y dos `h1` en la misma página es un error de estructura.
+- Los enlaces internos apuntan a rutas que existen, y ninguna ficha se enlaza a
+  sí misma.
 
 ---
 

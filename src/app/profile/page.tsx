@@ -5,7 +5,11 @@ import { ProfileForm } from "@/components/profile-form";
 import { getSessionUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-export const metadata: Metadata = { title: "Mi perfil" };
+/** Página con sesión: nunca debe indexarse. */
+export const metadata: Metadata = {
+  title: "Mi perfil",
+  robots: { index: false, follow: false },
+};
 
 export default async function ProfilePage() {
   if (!isSupabaseConfigured) {

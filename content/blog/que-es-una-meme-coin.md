@@ -1,6 +1,6 @@
 ---
-title: "Qué es una meme coin: la guía completa para entenderlas de una vez"
-description: "Qué es exactamente una meme coin, en qué se diferencia del resto de criptomonedas, por qué su precio no depende de la tecnología y qué mirar antes de acercarte a una."
+title: "Qué es una meme coin: la guía completa para entenderlas"
+description: "Qué es exactamente una meme coin, en qué se diferencia del resto de criptomonedas y qué mirar antes de acercarte a una."
 date: 2026-03-04
 updated: 2026-07-18
 keywords: [qué es una meme coin, meme coins, criptomonedas meme, memecoins explicadas]

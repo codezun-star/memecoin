@@ -1,6 +1,6 @@
 ---
 title: "Shiba Inu (SHIB): qué es, cómo nació y qué construyó después"
-description: "El origen de Shiba Inu en 2020, la donación a Vitalik Buterin que quemó la mitad del suministro, el ecosistema que levantó después y qué implica que sea un token y no una cadena."
+description: "El origen de Shiba Inu en 2020, la donación a Vitalik Buterin que quemó medio suministro y el ecosistema que levantó después."
 date: 2026-04-28
 keywords: [qué es shiba inu, shib criptomoneda, historia shiba inu, shibarium]
 faq:

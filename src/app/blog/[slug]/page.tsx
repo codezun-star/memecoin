@@ -5,10 +5,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, List } from "lucide-react";
 
+import { JsonLd } from "@/components/json-ld";
 import { PostCard } from "@/components/blog/post-card";
 import { Reveal } from "@/components/reveal";
 import { CommentThread } from "@/components/comments/comment-thread";
 import { formatPostDate, getAllPosts, getPost } from "@/lib/blog";
+import { migas, preguntasFrecuentes } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 /** Pre-renderiza cada artículo como HTML estático en el build. */
@@ -29,7 +31,9 @@ export async function generateMetadata({
   const url = `${SITE_URL}/blog/${post.slug}`;
 
   return {
-    title: post.title,
+    // Sin el sufijo de la plantilla: son 17 caracteres, y el título se corta
+    // sobre los 60. Mismo criterio que en las fichas de moneda.
+    title: { absolute: post.title },
     description: post.description,
     alternates: { canonical: `/blog/${post.slug}` },
     keywords: post.keywords,
@@ -93,41 +97,20 @@ export default async function ArticuloPage({ params }: { params: Promise<{ slug:
       },
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Inicio", item: SITE_URL },
-        { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
-        { "@type": "ListItem", position: 3, name: post.title, item: url },
-      ],
-    },
+    migas([
+      { nombre: "Blog", ruta: "/blog" },
+      { nombre: post.title, ruta: `/blog/${post.slug}` },
+    ]),
   ];
 
-  if (post.faq.length > 0) {
-    jsonLd.push({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: post.faq.map((item) => ({
-        "@type": "Question",
-        name: item.pregunta,
-        acceptedAnswer: { "@type": "Answer", text: item.respuesta },
-      })),
-    });
-  }
+  const faq = preguntasFrecuentes(post.faq);
+  if (faq) jsonLd.push(faq);
 
   const indice = post.headings.filter((h) => h.level === 2);
 
   return (
     <>
-      {jsonLd.map((esquema, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          // Construido por nosotros a partir de ficheros del repositorio.
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(esquema) }}
-        />
-      ))}
+      <JsonLd esquemas={jsonLd} />
 
       <div className="shell py-10 md:py-14">
         {/* Migas visibles, además del esquema: ayudan al lector y al rastreo. */}

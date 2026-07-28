@@ -1,6 +1,6 @@
 ---
-title: "Floki en 2026: un videojuego en marcha y la mirada de Grayscale"
-description: "Valhalla ya funciona en red principal, el lanzamiento móvil se espera para finales de año y Grayscale incluyó FLOKI en su lista de activos en estudio. Qué separa a Floki del resto de meme coins."
+title: "Floki en 2026: un videojuego en marcha y Grayscale"
+description: "Valhalla ya funciona en red principal y Grayscale incluyó FLOKI en su lista de activos en estudio. Qué separa a Floki del resto."
 date: 2026-07-27
 keywords: [floki 2026, Valhalla juego, FLOKI Grayscale, floki inu noticias]
 faq:

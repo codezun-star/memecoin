@@ -1,6 +1,6 @@
 ---
-title: "Liquidez y deslizamiento: por qué a veces no puedes vender al precio que ves"
-description: "Qué es la liquidez de una meme coin, cómo funciona el deslizamiento, por qué una posición grande no se puede vender al precio de pantalla y cómo medirlo antes de entrar."
+title: "Liquidez y deslizamiento: por qué no vendes al precio visto"
+description: "Qué es la liquidez de una meme coin, cómo funciona el deslizamiento y por qué una posición grande no se vende al precio de pantalla."
 date: 2026-06-06
 keywords: [liquidez cripto, deslizamiento slippage, profundidad de mercado, vender meme coin]
 faq:

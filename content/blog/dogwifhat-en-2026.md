@@ -1,6 +1,6 @@
 ---
-title: "dogwifhat en 2026: validadores en Solana y una esfera que nunca se encendió"
-description: "El experimento de una meme coin sin nada detrás, tres años después: una campaña de mecenazgo abandonada, un plan de validadores que reparte ingresos y un precio muy lejos de máximos."
+title: "dogwifhat en 2026: validadores y una esfera apagada"
+description: "Una meme coin sin nada detrás, tres años después: mecenazgo abandonado, un plan de validadores y un precio lejos de máximos."
 date: 2026-07-27
 keywords: [dogwifhat 2026, WIF noticias, wif validador solana, dogwifhat esfera]
 faq:

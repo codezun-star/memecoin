@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { JsonLd } from "@/components/json-ld";
 import { PostCard } from "@/components/blog/post-card";
 import { Paginacion } from "@/components/blog/paginacion";
 import { Reveal } from "@/components/reveal";
 import { getAllPosts, getPostsPaginados } from "@/lib/blog";
+import { migas } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Blog sobre meme coins: guías, análisis e historia",
+  title: "Blog de meme coins: guías y análisis",
   description:
-    "Guías claras sobre meme coins: cómo funcionan, cómo se leen sus métricas, de dónde salen Dogecoin, Shiba Inu, Pepe o Bonk y qué mirar antes de entrar.",
+    "Guías claras sobre meme coins: cómo funcionan, cómo se leen sus métricas y qué mirar antes de entrar. En castellano y sin señales de compra.",
   alternates: { canonical: "/blog" },
   openGraph: {
     title: "Blog sobre meme coins · Memecoin Plaza",
@@ -54,9 +57,17 @@ export default async function BlogPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd esquemas={[jsonLd, migas([{ nombre: "Blog", ruta: "/blog" }])]} />
 
       <div className="shell py-10 md:py-14">
+        <nav aria-label="Ruta" className="mb-6 flex items-center gap-2 text-sm text-ink-faint">
+          <Link href="/" className="transition-colors hover:text-ink">
+            Inicio
+          </Link>
+          <span aria-hidden>›</span>
+          <span className="text-ink-soft">Blog</span>
+        </nav>
+
         <header className="mb-10 max-w-2xl">
           <p className="eyebrow mb-2">El blog</p>
           <h1 className="font-display text-display-lg">Para entender el circo</h1>

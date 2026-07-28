@@ -1,6 +1,6 @@
 ---
-title: "El mercado de meme coins en 2026: de 150.000 a 30.000 millones"
-description: "El sector ha perdido en torno al 80 % de su capitalización desde el máximo de finales de 2024. Qué ha pasado, hacia dónde ha rotado el capital y qué ha sobrevivido a la caída."
+title: "El mercado de meme coins en 2026: la caída del 80 %"
+description: "El sector ha perdido en torno al 80 % de su capitalización desde el máximo de 2024. Qué ha pasado y hacia dónde ha rotado el capital."
 date: 2026-07-27
 keywords: [mercado meme coins 2026, capitalización meme coins, rotación de capital cripto]
 faq:

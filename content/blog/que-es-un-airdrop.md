@@ -1,6 +1,6 @@
 ---
 title: "Qué es un airdrop y por qué no todos son regalos"
-description: "Cómo funciona un airdrop de criptomonedas, por qué los proyectos regalan tokens, qué efecto tiene sobre el precio y cómo distinguir un reparto legítimo de una estafa dirigida."
+description: "Cómo funciona un airdrop, por qué los proyectos regalan tokens, qué efecto tiene en el precio y cómo distinguirlo de una estafa."
 date: 2026-07-10
 keywords: [qué es un airdrop, airdrop cripto, reparto de tokens, airdrop estafa]
 faq:

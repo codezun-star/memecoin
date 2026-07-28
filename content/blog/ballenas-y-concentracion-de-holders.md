@@ -1,6 +1,6 @@
 ---
-title: "Ballenas y concentración de tenedores: el dato que decide si puedes perderlo todo"
-description: "Qué es una ballena en cripto, cómo comprobar la concentración de tenedores de una meme coin, qué porcentajes son señal de alarma y por qué es el análisis que más gente se salta."
+title: "Ballenas y concentración de tenedores: el dato clave"
+description: "Qué es una ballena en cripto, cómo comprobar la concentración de tenedores de una meme coin y qué porcentajes son señal de alarma."
 date: 2026-06-27
 keywords: [ballenas cripto, concentración de holders, distribución de tokens, top holders]
 faq:

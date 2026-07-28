@@ -1,6 +1,6 @@
 ---
-title: "Tokenomics de una meme coin: qué mirar cuando no hay producto"
-description: "Cómo analizar la economía de un token cuando el proyecto no genera ingresos: distribución, emisión, impuestos, desbloqueos y mecanismos de quema, con lo que cada uno implica de verdad."
+title: "Tokenomics: qué mirar cuando no hay producto"
+description: "Cómo analizar la economía de un token sin ingresos: distribución, emisión, impuestos, desbloqueos y mecanismos de quema."
 date: 2026-07-01
 keywords: [tokenomics, economía de tokens, distribución de tokens, impuestos token]
 faq:

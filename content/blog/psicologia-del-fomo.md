@@ -1,6 +1,6 @@
 ---
 title: "Psicología del FOMO: por qué compras arriba y vendes abajo"
-description: "Los sesgos que hacen que la gente entre en máximos y salga en mínimos, explicados uno a uno, y las reglas concretas que se pueden aplicar antes de que aparezcan."
+description: "Los sesgos que hacen entrar en máximos y salir en mínimos, y las reglas concretas que puedes aplicar antes de que aparezcan."
 date: 2026-07-14
 keywords: [fomo cripto, psicología trading, sesgos inversión, miedo a perderse algo]
 faq:

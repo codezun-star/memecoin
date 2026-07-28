@@ -1,6 +1,6 @@
 ---
-title: "Cómo investigar una meme coin antes de comprar: checklist completo"
-description: "Un método en cinco bloques para revisar una meme coin en veinte minutos: contrato, distribución, liquidez, comunidad y narrativa, con lo que descalifica en cada uno."
+title: "Cómo investigar una meme coin antes de comprar"
+description: "Un método en cinco bloques para revisar una meme coin en veinte minutos: contrato, distribución, liquidez, comunidad y narrativa."
 date: 2026-07-22
 keywords: [investigar meme coin, due diligence cripto, analizar criptomoneda, checklist cripto]
 faq:

@@ -1,6 +1,6 @@
 ---
 title: "Cómo leer el gráfico de una meme coin sin engañarte"
-description: "Capitalización, volumen, suministro y máximo histórico explicados con números reales. Qué mira alguien con experiencia antes que el precio y por qué el precio por unidad no significa nada."
+description: "Capitalización, volumen, suministro y máximo histórico explicados con números reales, y por qué el precio por unidad no significa nada."
 date: 2026-03-19
 updated: 2026-07-20
 keywords: [cómo leer gráfico cripto, capitalización de mercado, volumen 24h, suministro circulante]

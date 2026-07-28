@@ -1,6 +1,6 @@
 ---
-title: "Pepe Coin (PEPE): la meme coin que presume de no servir para nada"
-description: "Qué es Pepe Coin, por qué su ausencia deliberada de utilidad e impuestos fue su mayor argumento de venta, y qué la diferencia del resto de tokens de rana que aparecieron después."
+title: "Pepe Coin (PEPE): la que presume de no servir para nada"
+description: "Qué es Pepe Coin y por qué su ausencia deliberada de utilidad e impuestos acabó siendo su mayor argumento de venta."
 date: 2026-05-08
 keywords: [qué es pepe coin, pepe criptomoneda, pepe token, meme coin rana]
 faq:

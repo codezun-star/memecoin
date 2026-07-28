@@ -1,6 +1,6 @@
 ---
 title: "ETF de meme coins: qué cambia de verdad y qué no"
-description: "En 2026 llegaron los primeros fondos cotizados al contado sobre meme coins. Qué permiten realmente, por qué no han movido el precio y qué diferencia hay entre los aprobados y los que entraron por la puerta de atrás."
+description: "En 2026 llegaron los primeros fondos cotizados al contado sobre meme coins. Qué permiten y por qué no han movido el precio."
 date: 2026-07-27
 keywords: [ETF meme coin, ETF dogecoin, ETF PEPE, fondo cotizado criptomoneda]
 faq:

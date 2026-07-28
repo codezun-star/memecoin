@@ -1,5 +1,5 @@
 ---
-title: "Diez errores de principiante con meme coins (y cómo evitarlos)"
+title: "Diez errores de principiante con meme coins"
 description: "Los fallos que casi todo el mundo comete al empezar con meme coins, por qué son tan costosos y qué hacer en su lugar. Sin recomendaciones de compra."
 date: 2026-07-19
 keywords: [errores meme coins, empezar en cripto, consejos principiantes cripto]

@@ -1,6 +1,6 @@
 ---
-title: "Shiba Inu en 2026: el 41 % del suministro quemado y una red que sigue creciendo"
-description: "Quemas acumuladas por encima del 41 % del suministro original, Shibarium superando los 1.500 millones de transacciones y una actualización de privacidad con cifrado homomórfico. Qué ha cambiado en SHIB este año."
+title: "Shiba Inu en 2026: 41 % del suministro quemado"
+description: "Quemas por encima del 41 % del suministro original, Shibarium superando los 1.500 millones de transacciones y cifrado homomórfico."
 date: 2026-07-27
 keywords: [shiba inu 2026, SHIB quemas, shibarium, SHIB noticias]
 faq:

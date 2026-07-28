@@ -1,6 +1,6 @@
 ---
 title: "Glosario de meme coins: 40 términos explicados en castellano"
-description: "Todo el vocabulario que necesitas para entender una conversación sobre meme coins: de airdrop a whale, pasando por rug pull, slippage, tokenomics y la jerga de comunidad."
+description: "Todo el vocabulario para entender una conversación sobre meme coins: de airdrop a whale, pasando por rug pull, slippage y tokenomics."
 date: 2026-07-26
 keywords: [glosario cripto, términos meme coins, jerga cripto, diccionario criptomonedas]
 faq:

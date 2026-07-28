@@ -1,6 +1,6 @@
 ---
-title: "Suministro circulante, total y máximo: las tres cifras que casi nadie distingue"
-description: "Qué diferencia hay entre suministro circulante, total y máximo, por qué la brecha entre ellos anticipa presión vendedora y cómo leer las quemas de tokens sin dejarse impresionar."
+title: "Suministro circulante, total y máximo: las tres cifras"
+description: "Qué diferencia hay entre suministro circulante, total y máximo, y por qué la brecha entre ellos anticipa presión vendedora."
 date: 2026-06-20
 keywords: [suministro circulante, suministro total cripto, quema de tokens, tokens bloqueados]
 faq:

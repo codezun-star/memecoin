@@ -1,7 +1,9 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Flame, MessagesSquare, TrendingUp } from "lucide-react";
+import { Activity, Flame, MessagesSquare, TrendingUp } from "lucide-react";
 
+import { JsonLd } from "@/components/json-ld";
 import { LiveCoinGrid } from "@/components/live-coin-grid";
 import { Reveal } from "@/components/reveal";
 import { LiveMarketsProvider } from "@/components/live-markets-provider";
@@ -9,15 +11,105 @@ import { Button } from "@/components/ui/button";
 import { getMarkets } from "@/lib/coingecko";
 import { getCommentCounts } from "@/lib/comments";
 import { TRACKED_COINS } from "@/lib/coins";
+import { getAllPosts } from "@/lib/blog";
+import {
+  listaDeElementos,
+  organizacion,
+  preguntasFrecuentes,
+  sitioWeb,
+} from "@/lib/seo";
+import type { FaqItem } from "@/lib/markdown";
 
 // El primer pintado se sirve cacheado hasta un minuto; a partir de ahí el
 // cliente mantiene los precios frescos por su cuenta.
 export const revalidate = 60;
 
-export default function HomePage() {
+const DESCRIPCION =
+  `Precios en tiempo real de las ${TRACKED_COINS.length} meme coins más importantes y un foro en español ` +
+  "para debatir cada una: Dogecoin, Shiba Inu, Pepe, Bonk y muchas más.";
+
+export const metadata: Metadata = {
+  title: "Precios de meme coins en tiempo real y foro en español",
+  description: DESCRIPCION,
+  alternates: { canonical: "/" },
+  keywords: [
+    "meme coins",
+    "precio meme coins en tiempo real",
+    "dogecoin precio hoy",
+    "shiba inu precio",
+    "mejores meme coins",
+    "foro criptomonedas en español",
+    "qué es una meme coin",
+  ],
+  openGraph: {
+    title: "Memecoin Plaza: precios de meme coins en tiempo real y foro",
+    description: DESCRIPCION,
+    type: "website",
+  },
+};
+
+/**
+ * Preguntas de entrada al tema.
+ *
+ * Son las que trae quien todavía no sabe qué es esto, que es un perfil de
+ * búsqueda distinto del de quien ya busca una moneda concreta. Esas otras
+ * preguntas viven en la ficha de cada moneda.
+ */
+const FAQ: FaqItem[] = [
+  {
+    pregunta: "¿Qué es una meme coin?",
+    respuesta:
+      "Una criptomoneda cuyo valor no procede de un producto, unos ingresos ni una tecnología propia, sino de la comunidad y la cultura que se forma a su alrededor. Dogecoin fue la primera, en 2013, y hoy hay miles. Lo que las distingue no es la tecnología —muchas son tokens estándar sin nada especial— sino que su precio depende casi por completo de la atención que consigan.",
+  },
+  {
+    pregunta: "¿Cuáles son las meme coins más importantes?",
+    respuesta:
+      "Por capitalización, las referencias históricas son Dogecoin y Shiba Inu. A partir de 2023 se sumaron Pepe en Ethereum, y Bonk, dogwifhat y otras en Solana. En esta página verás las que seguimos, ordenadas por capitalización y con los datos actualizándose solos.",
+  },
+  {
+    pregunta: "¿Cómo se leen los datos de una meme coin?",
+    respuesta:
+      "El precio unitario por sí solo no dice nada, porque depende de cuántas unidades existan: una moneda a 0,00002 $ con billones de unidades puede valer más en total que otra a 5 $. Lo comparable es la capitalización, que es precio por suministro circulante. El volumen de 24 horas indica cuánto se ha movido de verdad; un precio que aguanta sin volumen se sostiene sobre muy pocas operaciones.",
+  },
+  {
+    pregunta: "¿De dónde salen los precios de esta página?",
+    respuesta:
+      "De datos públicos de mercado que se actualizan solos cada veinte segundos, sin necesidad de recargar. En la página de operaciones puedes ver además las compras y ventas individuales según se ejecutan.",
+  },
+  {
+    pregunta: "¿Hace falta registrarse para consultar los precios?",
+    respuesta:
+      "No. Todos los precios, gráficos y datos de mercado son públicos y no requieren cuenta. Solo hace falta registrarse para participar en el debate: escribir comentarios y dar like a los de otras personas.",
+  },
+  {
+    pregunta: "¿Es buena idea invertir en meme coins?",
+    respuesta:
+      "Aquí no damos recomendaciones de inversión ni las daremos. Lo que sí conviene tener claro es el perfil de riesgo: son de los activos más volátiles que existen, prácticamente todas han caído más de un 80 % desde sus máximos en algún momento, y la mayoría de las que se lanzan desaparecen. La información de este sitio está para ayudarte a decidir por tu cuenta, no para decidir por ti.",
+  },
+];
+
+export default async function HomePage() {
+  const posts = await getAllPosts();
+
   return (
     <>
+      <JsonLd
+        esquemas={[
+          organizacion(DESCRIPCION),
+          sitioWeb(DESCRIPCION),
+          listaDeElementos(
+            "Meme coins que seguimos",
+            TRACKED_COINS.map((coin) => ({
+              nombre: `${coin.name} (${coin.symbol})`,
+              ruta: `/coin/${coin.slug}`,
+            })),
+          ),
+          preguntasFrecuentes(FAQ),
+        ]}
+      />
+
       <Hero />
+
       <section id="mercado" className="shell pb-4 pt-12 md:pt-16">
         <Reveal className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -33,7 +125,11 @@ export default function HomePage() {
           <CoinGrid />
         </Suspense>
       </section>
+
       <ValueProps />
+      <QueSonLasMemeCoins />
+      <Faq />
+      <UltimosArticulos posts={posts.slice(0, 3)} />
     </>
   );
 }
@@ -150,5 +246,153 @@ function ValueProps() {
         ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * El texto que explica de qué va todo esto.
+ *
+ * Está aquí abajo y no arriba a propósito: quien entra buscando un precio
+ * quiere el precio, no una lección. Pero quien llega desde una búsqueda del
+ * tipo «qué es una meme coin» necesita encontrar una respuesta de verdad en
+ * esta página, no una rejilla de tarjetas y nada más.
+ */
+function QueSonLasMemeCoins() {
+  return (
+    <Reveal as="section" className="shell pt-16">
+      <div className="surface-card p-6 md:p-10">
+        <div className="max-w-3xl">
+          <p className="eyebrow mb-2">Para empezar</p>
+          <h2 className="font-display text-display-md">Qué es una meme coin</h2>
+
+          <div className="mt-5 space-y-4 text-ink-soft">
+            <p>
+              Una meme coin es una criptomoneda cuyo valor no viene de un producto, unos ingresos ni
+              una tecnología propia, sino de <strong className="text-ink">la comunidad y la
+              cultura</strong> que se forma a su alrededor. La primera fue{" "}
+              <Link href="/coin/dogecoin" className="text-brand-strong hover:underline">
+                Dogecoin
+              </Link>
+              , en 2013, y nació literalmente como una parodia del entusiasmo que rodeaba a Bitcoin.
+            </p>
+            <p>
+              Técnicamente, la mayoría no tienen nada especial: son tokens estándar sobre redes ya
+              existentes como Ethereum, Solana o Base, y crear uno cuesta unos céntimos y unos
+              minutos. Lo que las diferencia entre sí no es el código, sino cuánta gente decide que
+              esa concreta les importa.
+            </p>
+            <p>
+              Eso hace que se comporten de una forma muy distinta al resto del mercado. Suben más
+              rápido y caen más rápido; responden a menciones en redes sociales más que a noticias
+              del sector; y su recorrido depende de una comunidad que puede disolverse tan rápido
+              como se formó.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-5 border-t border-line pt-8 md:grid-cols-3">
+          <div>
+            <h3 className="font-display text-lg font-bold">Cómo leer una capitalización</h3>
+            <p className="mt-2 text-sm text-ink-soft">
+              El precio unitario no dice nada por sí solo, porque depende de cuántas unidades
+              existan. Una moneda a 0,00002 $ con billones de unidades puede valer más en total que
+              otra a 5 $. Lo comparable siempre es la capitalización: precio por suministro
+              circulante.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-bold">Por qué importa el volumen</h3>
+            <p className="mt-2 text-sm text-ink-soft">
+              El volumen de 24 horas mide cuánto se ha movido de verdad. Un precio que aguanta con
+              el volumen desplomado se sostiene sobre muy pocas operaciones, y eso significa que
+              entrar o salir de una posición grande moverá el precio más de lo que esperas.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-bold">Compras y ventas en directo</h3>
+            <p className="mt-2 text-sm text-ink-soft">
+              En{" "}
+              <Link href="/operaciones" className="text-brand-strong hover:underline">
+                operaciones en vivo
+              </Link>{" "}
+              puedes ver cada compra y cada venta según se cruzan en el mercado, con la presión
+              compradora y vendedora del momento. Es la forma más directa de comprobar si hay
+              actividad real detrás de un precio.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-3 border-t border-line pt-8">
+          <Link href="/blog">
+            <Button variant="secondary">Leer las guías del blog</Button>
+          </Link>
+          <Link href="/operaciones">
+            <Button variant="secondary">
+              <Activity className="size-4" aria-hidden />
+              Ver operaciones en vivo
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Faq() {
+  return (
+    <Reveal as="section" className="shell pt-16">
+      <div className="mx-auto max-w-3xl">
+        <h2 className="font-display text-display-md">Preguntas frecuentes</h2>
+        <div className="mt-6 space-y-3">
+          {FAQ.map((item) => (
+            <details key={item.pregunta} className="surface-card group p-5">
+              <summary className="cursor-pointer list-none font-display font-bold text-ink marker:content-none">
+                <span className="inline-flex w-full items-center justify-between gap-4">
+                  {item.pregunta}
+                  <span
+                    aria-hidden
+                    className="shrink-0 text-brand-strong transition-transform group-open:rotate-45"
+                  >
+                    +
+                  </span>
+                </span>
+              </summary>
+              <p className="mt-3 leading-relaxed text-ink-soft">{item.respuesta}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function UltimosArticulos({
+  posts,
+}: {
+  posts: { slug: string; title: string; description: string }[];
+}) {
+  if (posts.length === 0) return null;
+
+  return (
+    <Reveal as="section" className="shell py-16">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="font-display text-display-md">Últimas guías</h2>
+        <Link href="/blog" className="text-sm text-ink-faint transition-colors hover:text-ink">
+          Ver todas →
+        </Link>
+      </div>
+      <div className="grid gap-5 md:grid-cols-3">
+        {posts.map((post) => (
+          <Link
+            key={post.slug}
+            href={`/blog/${post.slug}`}
+            className="surface-card p-5 transition-colors hover:border-line-strong"
+          >
+            <h3 className="font-display text-lg font-bold leading-snug text-ink">{post.title}</h3>
+            <p className="mt-2 line-clamp-3 text-sm text-ink-soft">{post.description}</p>
+          </Link>
+        ))}
+      </div>
+    </Reveal>
   );
 }

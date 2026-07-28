@@ -1,6 +1,6 @@
 ---
 title: "Cómo detectar un rug pull antes de que te pase"
-description: "Qué es exactamente un rug pull, los tres tipos que existen, las señales concretas que puedes comprobar tú mismo en cinco minutos y las excusas que suelen acompañarlos."
+description: "Qué es un rug pull, los tres tipos que existen y las señales concretas que puedes comprobar tú mismo en cinco minutos."
 date: 2026-05-30
 keywords: [qué es un rug pull, estafa cripto, detectar estafa meme coin, liquidez bloqueada]
 faq:

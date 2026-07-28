@@ -1,6 +1,6 @@
 ---
-title: "Bonk en 2026: un ecosistema con ingresos y un ataque de gobernanza de 20 millones"
-description: "LetsBonk, más de 400 integraciones en Solana, ingresos de ocho cifras en el primer trimestre y un ataque a la tesorería del DAO en julio. El año más contradictorio de Bonk."
+title: "Bonk en 2026: ingresos reales y un ataque de gobernanza"
+description: "LetsBonk, más de 400 integraciones en Solana, ingresos de ocho cifras y un ataque a la tesorería del DAO. El año más contradictorio de Bonk."
 date: 2026-07-27
 keywords: [bonk 2026, BonkDAO hack, LetsBonk, bonk quema tokens]
 faq:

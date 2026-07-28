@@ -1,6 +1,6 @@
 ---
 title: "Dogecoin en 2026: el año en que dejó de ser solo un chiste"
-description: "ETF al contado aprobado en Nasdaq, clasificación oficial como materia prima digital y una red de pagos con miles de comercios. Qué ha cambiado de verdad en Dogecoin y por qué el precio no lo refleja."
+description: "ETF al contado en Nasdaq, clasificación como materia prima digital y una red de pagos con miles de comercios. Qué ha cambiado de verdad."
 date: 2026-07-27
 keywords: [dogecoin 2026, ETF dogecoin, DOGE materia prima digital, dogecoin noticias]
 faq:

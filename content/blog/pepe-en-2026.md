@@ -1,6 +1,6 @@
 ---
-title: "Pepe en 2026: una solicitud de ETF para una moneda sin hoja de ruta"
-description: "Canary Capital presentó una solicitud de ETF al contado sobre PEPE en abril de 2026. Qué significa para una moneda que presume de no tener desarrollo, y en qué punto está el activo."
+title: "Pepe en 2026: un ETF para una moneda sin hoja de ruta"
+description: "Canary Capital presentó una solicitud de ETF al contado sobre PEPE. Qué significa para una moneda que presume de no tener desarrollo."
 date: 2026-07-27
 keywords: [pepe 2026, ETF pepe, PEPE noticias, pepe coin]
 faq:

@@ -1,6 +1,6 @@
 ---
-title: "Meme coins de inteligencia artificial en 2026: qué queda del experimento"
-description: "Fartcoin, los agentes autónomos y la narrativa que dominó el final de 2024. Dos años después, qué ha sobrevivido de las meme coins nacidas de la inteligencia artificial y qué era humo."
+title: "Meme coins de IA en 2026: qué queda del experimento"
+description: "Fartcoin, los agentes autónomos y la narrativa que dominó 2024. Dos años después, qué ha sobrevivido y qué era humo."
 date: 2026-07-27
 keywords: [meme coins IA, fartcoin 2026, agentes de IA cripto, AI memecoin]
 faq:
