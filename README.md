@@ -56,10 +56,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 1. [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) — tablas, RLS, triggers y permisos.
 2. [`supabase/migrations/0002_more_coins.sql`](supabase/migrations/0002_more_coins.sql) — catálogo de 20 monedas.
 
-> **Si ya habías ejecutado la primera, vuelve a ejecutarla igualmente.** Ambas son
-> idempotentes, y a la 0001 se le añadieron los `GRANT` explícitos a `anon` y
-> `authenticated`: sin ellos, según cómo esté el proyecto, las políticas de RLS
-> pueden quedar tapadas por un "permission denied" a nivel de tabla.
+Las dos son idempotentes y ninguna depende de que la otra se haya vuelto a
+ejecutar: cada una declara las columnas que necesita con
+`add column if not exists`. Se pueden pasar en cualquier momento y las veces que
+haga falta.
+
+> **Si creaste la base antes, vuelve a pasar la 0001 igualmente.** Se le añadieron
+> los `GRANT` explícitos a `anon` y `authenticated`: sin ellos, según cómo esté el
+> proyecto, las políticas de RLS pueden quedar tapadas por un "permission denied"
+> a nivel de tabla.
 
 ### 4. URLs de autenticación
 

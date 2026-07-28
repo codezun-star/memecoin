@@ -11,6 +11,15 @@
 -- vacía para siempre.
 -- ============================================================================
 
+-- Esta migración no da por hecha la forma de la tabla.
+--
+-- `accent_ink` se añadió a 0001 después de que hubiera bases ya creadas con la
+-- versión anterior, así que en esas bases la columna no existe y el insert de
+-- abajo fallaría con "column accent_ink does not exist". Declararla aquí hace
+-- que 0002 se pueda ejecutar sola, sin depender de que 0001 se haya vuelto a
+-- pasar. Si ya existe, no hace nada.
+alter table public.coins add column if not exists accent_ink text;
+
 insert into public.coins (id, slug, symbol, name, accent, accent_ink, tagline, blurb, sort_order)
 values
   ('dogecoin', 'dogecoin', 'DOGE', 'Dogecoin', '#F5C542', '#926C04',
