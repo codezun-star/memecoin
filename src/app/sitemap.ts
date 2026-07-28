@@ -1,14 +1,18 @@
 import type { MetadataRoute } from "next";
 
 import { TRACKED_COINS } from "@/lib/coins";
+import { getAllPosts, getAllTags } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site-config";
 
 /**
  * Sitemap. Solo entran páginas públicas e indexables: nada de rutas con sesión
  * (`/profile`) ni de endpoints (`/api/*`).
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
+
+  // Los artículos entran solos: publicar un .md lo añade al sitemap.
+  const [posts, tags] = await Promise.all([getAllPosts(), getAllTags()]);
 
   return [
     {
@@ -23,6 +27,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: ahora,
       changeFrequency: "daily" as const,
       priority: 0.8,
+    })),
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: posts[0] ? new Date(posts[0].date) : ahora,
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
+    },
+    ...posts.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      // La fecha real del artículo, no la del build: es lo que mira un buscador
+      // para saber si hay algo nuevo.
+      lastModified: new Date(post.updated ?? post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    ...tags.map((tag) => ({
+      url: `${SITE_URL}/blog/categoria/${tag.slug}`,
+      lastModified: ahora,
+      changeFrequency: "weekly" as const,
+      priority: 0.4,
     })),
     {
       url: `${SITE_URL}/signup`,

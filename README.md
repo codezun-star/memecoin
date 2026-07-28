@@ -24,6 +24,8 @@ un tracker de precios y un foro, con **20 meme coins** trackeadas.
 | Likes en comentarios (con actualización optimista) | ✅ |
 | Borrado de los comentarios propios | ✅ |
 | Esquema SQL con RLS, triggers, permisos y seed | ✅ |
+| Blog en markdown, pre-renderizado y con JSON-LD | ✅ |
+| PWA instalable (sin modo offline, a propósito) | ✅ |
 
 ---
 
@@ -258,6 +260,7 @@ psql -d memecoin_test -f supabase/tests/schema_test.sql
 src/
 ├── app/
 │   ├── page.tsx                 # Home: hero + grid de monedas en vivo
+│   ├── blog/                    # Listado, artículo y categorías (SSG)
 │   ├── coin/[slug]/page.tsx     # Detalle: datos, gráfico y debate
 │   ├── api/markets/route.ts     # Endpoint de sondeo con throttle compartido
 │   ├── login/ · signup/         # Autenticación
@@ -273,6 +276,7 @@ src/
 │   ├── coin-live.tsx            # Cabecera, gráfico y stats en vivo
 │   └── coin-card.tsx · sparkline.tsx · price-chart.tsx
 ├── lib/
+│   ├── blog.ts                  # Lectura y parseo de los markdown del blog
 │   ├── coingecko.ts             # Cliente + normalización de la API de precios
 │   ├── coingecko.test.ts        # Pruebas del pipeline de datos
 │   ├── use-live-markets.ts      # Hook de sondeo
@@ -337,6 +341,31 @@ Todo lo demás se deriva de él con `npm run icons:generate`:
 El App Router detecta los tres primeros por su nombre y emite las etiquetas
 `<link>` y `<meta>` solo. Para cambiar el logo: sustituye `public/logomeme.png`,
 ejecuta el script y commitea los ficheros generados.
+
+---
+
+## Blog
+
+Vive entero en `content/blog/` como ficheros markdown. **No usa la base de datos
+ni la autenticación**: es independiente del sistema de comentarios. Publicar un
+artículo es añadir un `.md` y desplegar.
+
+Cada artículo se pre-renderiza como HTML estático en el build
+(`generateStaticParams` + `generateMetadata`), que es lo que hace que cargue al
+instante y que Google lo indexe sin ejecutar JavaScript.
+
+Lo que se genera solo al añadir un fichero: su página, su entrada en el listado,
+sus páginas de categoría, su sitio en el `sitemap.xml` con la fecha real del
+artículo, sus etiquetas Open Graph y un JSON-LD de tipo `BlogPosting` para los
+resultados enriquecidos de Google.
+
+**El proceso exacto de publicación está en [BLOG.md](BLOG.md)** — formato del
+frontmatter, campos disponibles, tamaño recomendado de las imágenes y cómo ver
+un borrador antes de publicarlo.
+
+El cuerpo del artículo usa una escala tipográfica propia (`prose-plaza`): es la
+única zona del sitio pensada para lectura larga, así que baja el contraste
+cromático y sube el ritmo vertical respecto al resto.
 
 ---
 

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 
 /**
  * Tokens del sistema de diseño de Memecoin Plaza — tema claro.
@@ -100,6 +101,44 @@ const config: Config = {
           "50%": { opacity: "0.35", transform: "scale(0.8)" },
         },
       },
+      // Cuerpo del artículo: la única zona del sitio pensada para lectura larga,
+      // así que baja el contraste cromático y sube el ritmo vertical (DESIGN.md §10).
+      typography: {
+        plaza: {
+          css: {
+            "--tw-prose-body": "#3A2E24",
+            "--tw-prose-headings": "#1F1710",
+            "--tw-prose-links": "#B84E08",
+            "--tw-prose-bold": "#1F1710",
+            "--tw-prose-counters": "#7C6957",
+            "--tw-prose-bullets": "#E0CDB0",
+            "--tw-prose-hr": "#F0E3CE",
+            "--tw-prose-quotes": "#3A2E24",
+            "--tw-prose-quote-borders": "#FF7A18",
+            "--tw-prose-captions": "#7C6957",
+            "--tw-prose-code": "#1F1710",
+            "--tw-prose-pre-code": "#FFF8EF",
+            "--tw-prose-pre-bg": "#241E19",
+            "--tw-prose-th-borders": "#E0CDB0",
+            "--tw-prose-td-borders": "#F0E3CE",
+            maxWidth: "68ch",
+            fontSize: "1.0625rem",
+            lineHeight: "1.75",
+            h2: { fontFamily: "var(--font-display)", letterSpacing: "-0.01em" },
+            h3: { fontFamily: "var(--font-display)", letterSpacing: "-0.01em" },
+            "h2 a, h3 a, h4 a": { color: "inherit", fontWeight: "inherit" },
+            code: {
+              backgroundColor: "#FBF3E6",
+              padding: "0.15em 0.4em",
+              borderRadius: "6px",
+              fontWeight: "500",
+            },
+            "code::before": { content: '""' },
+            "code::after": { content: '""' },
+            blockquote: { fontStyle: "normal", quotes: "none" },
+          },
+        },
+      },
       animation: {
         "pop-like": "pop-like 320ms ease-out",
         "fade-up": "fade-up 220ms ease-out both",
@@ -110,7 +149,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };
 
 export default config;

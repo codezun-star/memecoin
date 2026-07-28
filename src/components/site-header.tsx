@@ -51,6 +51,12 @@ export async function SiteHeader() {
           >
             Ver todas
           </Link>
+          <Link
+            href="/blog"
+            className="ml-2 rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+          >
+            Blog
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">

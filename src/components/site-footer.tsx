@@ -38,6 +38,22 @@ export function SiteFooter() {
             </li>
           </ul>
         </nav>
+
+        <nav aria-label="Secciones" className="space-y-3">
+          <p className="eyebrow">Sitio</p>
+          <ul className="space-y-2 text-sm">
+            <li>
+              <Link href="/blog" className="text-ink-soft transition-colors hover:text-ink">
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link href="/signup" className="text-ink-soft transition-colors hover:text-ink">
+                Crear cuenta
+              </Link>
+            </li>
+          </ul>
+        </nav>
       </div>
       <div className="shell border-t border-line py-5 text-xs text-ink-faint">
         © {new Date().getFullYear()} Memecoin Plaza · Datos de mercado por CoinGecko
