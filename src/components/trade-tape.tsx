@@ -7,7 +7,8 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { CoinLogo } from "@/components/coin-logo";
 import { Button } from "@/components/ui/button";
 import { TRADABLE_COINS } from "@/lib/coins";
-import { formatCompact, formatPrice } from "@/lib/format";
+import { formatAmount, formatCompact, formatExact, formatPrice } from "@/lib/format";
+import { VISIBLES } from "@/lib/trades";
 import { useLiveTrades, type EstadoConexion } from "@/lib/use-live-trades";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,12 @@ function hora(ts: number): string {
   });
 }
 
-export function TradeTape() {
+/**
+ * @param logos URL del logo de cada moneda, resuelta en el servidor. Se pasa por
+ *   props en lugar de sondear los mercados otra vez desde aquí: un logo no
+ *   cambia, y esta página no necesita precios en vivo para nada más.
+ */
+export function TradeTape({ logos = {} }: { logos?: Record<string, string> }) {
   const [seleccion, setSeleccion] = useState<string[]>(
     // Por defecto, las cuatro clásicas: abrir con veinte flujos a la vez llena
     // la pantalla tan rápido que no se lee nada.
@@ -53,6 +59,10 @@ export function TradeTape() {
   );
 
   const { trades, estado } = useLiveTrades(pares);
+
+  // Se guardan más de las que se enseñan: la barra de presión de arriba usa
+  // todas, la tabla solo las más recientes (ver src/lib/trades.ts).
+  const visibles = useMemo(() => trades.slice(0, VISIBLES), [trades]);
 
   const porId = useMemo(
     () => new Map<string, (typeof TRADABLE_COINS)[number]>(TRADABLE_COINS.map((c) => [c.id, c])),
@@ -99,10 +109,13 @@ export function TradeTape() {
                   : "border-line bg-surface text-ink-faint hover:border-line-strong hover:text-ink-soft",
               )}
             >
-              <span
-                aria-hidden
-                className="size-2 rounded-full"
-                style={{ background: activa ? coin.accent : "transparent", boxShadow: activa ? undefined : "inset 0 0 0 1px currentColor" }}
+              <CoinLogo
+                coin={coin}
+                src={logos[coin.id]}
+                size="xs"
+                // Las no elegidas se apagan en lugar de desaparecer: así el
+                // selector se lee igual de rápido con o sin logos cargados.
+                className={cn("transition-opacity", !activa && "opacity-45")}
               />
               {coin.symbol}
             </button>
@@ -123,8 +136,12 @@ export function TradeTape() {
           {info.texto}
         </span>
 
-        <span className="tabular text-sm text-ink-faint">
-          {trades.length} operaciones · <span className="text-ink">{formatCompact(resumen.volumen)}</span>
+        <span
+          className="tabular text-sm text-ink-faint"
+          title={`Volumen exacto de estas operaciones: ${formatExact(resumen.volumen)}`}
+        >
+          {trades.length} operaciones ·{" "}
+          <span className="text-ink">{formatCompact(resumen.volumen)}</span>
         </span>
 
         {/* Barra de presión compradora frente a vendedora */}
@@ -184,67 +201,120 @@ export function TradeTape() {
         </div>
       ) : (
         <div className="surface-card overflow-hidden">
-          {/* En móvil se ocultan las columnas menos útiles en lugar de encoger todo */}
-          <div className="hidden grid-cols-[1fr_auto_auto_auto_auto] gap-4 border-b border-line px-4 py-2.5 text-eyebrow uppercase text-ink-faint sm:grid">
-            <span>Moneda</span>
-            <span className="text-right">Tipo</span>
-            <span className="text-right">Precio</span>
-            <span className="text-right">Importe</span>
-            <span className="text-right">Hora</span>
-          </div>
+          {/*
+            Tabla de verdad, no una rejilla por fila.
 
-          <ul className="divide-y divide-line">
-            {trades.map((trade) => {
-              const coin = porId.get(trade.coinId);
-              const esCompra = trade.side === "buy";
+            Antes cada fila era su propia rejilla con columnas `auto`, así que
+            cada una se dimensionaba por su cuenta y ninguna coincidía con la
+            cabecera. Una tabla comparte el ancho de columna entre cabecera y
+            cuerpo por definición, y además `table-fixed` los deja quietos: sin
+            eso, una cinta que se renueva cada segundo recalcularía los anchos
+            en cada operación nueva y las columnas irían dando saltos.
+          */}
+          <table className="w-full table-fixed">
+            <caption className="sr-only">
+              Últimas {VISIBLES} operaciones de las monedas seleccionadas
+            </caption>
 
-              return (
-                <li
-                  key={trade.id}
-                  className={cn(
-                    "grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-2.5 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:gap-4",
-                    esCompra ? "animate-flash-up" : "animate-flash-down",
-                  )}
+            <thead>
+              <tr className="border-b border-line text-eyebrow uppercase text-ink-faint">
+                <th scope="col" className="px-3 py-2.5 text-left font-medium sm:px-4">
+                  Moneda
+                </th>
+                <th scope="col" className="w-28 px-3 py-2.5 text-right font-medium sm:w-32 sm:px-4">
+                  Tipo
+                </th>
+                {/* En móvil se ocultan las columnas menos útiles en vez de encogerlo todo. */}
+                <th
+                  scope="col"
+                  className="hidden px-4 py-2.5 text-right font-medium sm:table-cell sm:w-36"
                 >
-                  <span className="flex min-w-0 items-center gap-2">
-                    {coin && <CoinLogo coin={coin} size="sm" className="size-6" />}
-                    <span className="truncate font-mono text-xs font-medium uppercase text-ink">
-                      {coin?.symbol ?? trade.coinId}
-                    </span>
-                  </span>
+                  Precio
+                </th>
+                <th scope="col" className="w-28 px-3 py-2.5 text-right font-medium sm:w-32 sm:px-4">
+                  Importe
+                </th>
+                <th
+                  scope="col"
+                  className="hidden px-4 py-2.5 text-right font-medium sm:table-cell sm:w-28"
+                >
+                  Hora
+                </th>
+              </tr>
+            </thead>
 
-                  <span
-                    className={cn(
-                      "inline-flex items-center justify-end gap-1 text-xs font-semibold",
-                      esCompra ? "text-up" : "text-down",
-                    )}
+            <tbody className="divide-y divide-line">
+              {visibles.map((trade) => {
+                const coin = porId.get(trade.coinId);
+                const esCompra = trade.side === "buy";
+
+                return (
+                  <tr
+                    key={trade.id}
+                    className={esCompra ? "animate-flash-up" : "animate-flash-down"}
                   >
-                    {esCompra ? (
-                      <ArrowUpRight className="size-3.5" aria-hidden />
-                    ) : (
-                      <ArrowDownRight className="size-3.5" aria-hidden />
-                    )}
-                    {esCompra ? "Compra" : "Venta"}
-                  </span>
+                    <td className="px-3 py-2.5 sm:px-4">
+                      <span className="flex min-w-0 items-center gap-2">
+                        {coin && <CoinLogo coin={coin} src={logos[trade.coinId]} size="sm" />}
+                        <span className="font-mono text-xs font-medium uppercase text-ink">
+                          {coin?.symbol ?? trade.coinId}
+                        </span>
+                        {/* El nombre llena una columna que si no queda vacía, y
+                            de paso evita tener que saber de memoria qué es BOME. */}
+                        {coin && (
+                          <span className="hidden truncate text-xs text-ink-faint sm:inline">
+                            {coin.name}
+                          </span>
+                        )}
+                      </span>
+                    </td>
 
-                  <span className="tabular hidden text-right text-xs text-ink-soft sm:block">
-                    {formatPrice(trade.price)}
-                  </span>
-                  <span className="tabular hidden text-right text-xs font-medium text-ink sm:block">
-                    {formatCompact(trade.value)}
-                  </span>
-                  <span className="tabular hidden text-right text-xs text-ink-faint sm:block">
-                    {hora(trade.timestamp)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+                    <td
+                      className={cn(
+                        "px-3 py-2.5 text-right text-xs font-semibold sm:px-4",
+                        esCompra ? "text-up" : "text-down",
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {esCompra ? (
+                          <ArrowUpRight className="size-3.5" aria-hidden />
+                        ) : (
+                          <ArrowDownRight className="size-3.5" aria-hidden />
+                        )}
+                        {esCompra ? "Compra" : "Venta"}
+                      </span>
+                    </td>
+
+                    <td className="tabular hidden px-4 py-2.5 text-right text-xs text-ink-soft sm:table-cell">
+                      {formatPrice(trade.price)}
+                    </td>
+                    <td
+                      className="tabular px-3 py-2.5 text-right text-xs font-medium text-ink sm:px-4"
+                      // La cifra exacta al pasar el ratón, por si el importe sale
+                      // abreviado en las operaciones muy grandes.
+                      title={formatExact(trade.value)}
+                    >
+                      {formatAmount(trade.value)}
+                    </td>
+                    <td className="tabular hidden px-4 py-2.5 text-right text-xs text-ink-faint sm:table-cell">
+                      {hora(trade.timestamp)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-ink-faint">
+        <p className="max-w-xl text-xs text-ink-faint">
+          {trades.length > VISIBLES && (
+            <>
+              La tabla muestra las {VISIBLES} operaciones más recientes; la barra de presión usa las{" "}
+              {trades.length} últimas.{" "}
+            </>
+          )}
           Operaciones de un único mercado, no del total del sector. &ldquo;Compra&rdquo; y
           &ldquo;venta&rdquo; indican quién cruzó el mercado en cada operación.
         </p>

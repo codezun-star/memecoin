@@ -3,7 +3,14 @@ import type { Metadata } from "next";
 import { Reveal } from "@/components/reveal";
 import { TradeTape } from "@/components/trade-tape";
 import { TRADABLE_COINS } from "@/lib/coins";
+import { getMarkets } from "@/lib/coingecko";
 import { SITE_URL } from "@/lib/site-config";
+
+/**
+ * Se regenera cada minuto. Lo único que se pide al servidor son los logos de las
+ * monedas —las operaciones las trae el navegador—, así que no hace falta más.
+ */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Operaciones en vivo: compras y ventas de meme coins en tiempo real",
@@ -18,7 +25,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function OperacionesPage() {
+export default async function OperacionesPage() {
+  const markets = await getMarkets();
+
+  // Si el proveedor no responde, el logo cae solo al monograma de color: la
+  // cinta funciona igual, que es lo que importa aquí.
+  const logos: Record<string, string> = {};
+  for (const market of markets ?? []) {
+    if (market.image) logos[market.id] = market.image;
+  }
+
   return (
     <div className="shell py-10 md:py-14">
       <header className="mb-8 max-w-2xl">
@@ -30,7 +46,7 @@ export default function OperacionesPage() {
         </p>
       </header>
 
-      <TradeTape />
+      <TradeTape logos={logos} />
 
       <Reveal as="section" className="surface-sunken mt-12 max-w-3xl p-6">
         <h2 className="font-display text-lg font-bold">Cómo leer esta pantalla</h2>

@@ -6,8 +6,25 @@
  * no pueden colgar de un módulo marcado como cliente.
  */
 
-/** Cuántas operaciones se conservan en pantalla. Más allá, la lista solo pesa. */
-export const MAX_OPERACIONES = 60;
+/**
+ * Cuántas operaciones se guardan en memoria.
+ *
+ * No es lo mismo que cuántas se enseñan. Este número alimenta la barra de
+ * presión compradora, y ahí más muestras es mejor: con veinte operaciones el
+ * porcentaje da saltos de veinte puntos cada pocos segundos y no dice nada.
+ */
+export const MAX_OPERACIONES = 120;
+
+/**
+ * Cuántas se enseñan en la tabla.
+ *
+ * Con cuatro monedas activas la cinta se renueva entera en menos de un minuto,
+ * así que una lista larga no se llega a leer: solo alarga la página. Veinticinco
+ * filas llenan aproximadamente una pantalla de escritorio, que es lo que de
+ * verdad se mira. El pulso del mercado lo da la barra de presión de arriba, que
+ * sí usa las 120.
+ */
+export const VISIBLES = 25;
 
 export type Trade = {
   id: string;

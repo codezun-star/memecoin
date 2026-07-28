@@ -20,6 +20,12 @@ function decimals(value: number, maximumFractionDigits: number, minimumFractionD
   return new Intl.NumberFormat(LOCALE, {
     minimumFractionDigits,
     maximumFractionDigits,
+    // Explícito a propósito. En español el agrupador por defecto se salta los
+    // números de cuatro cifras, así que 2431 salía sin punto —justo el caso que
+    // hay que dejar claro— y 12345 sí lo llevaba. Además, dejarlo al criterio
+    // del sistema es pedir que Node y el navegador no coincidan, y esa clase de
+    // diferencia rompe la hidratación (ver la nota de arriba).
+    useGrouping: true,
   }).format(value);
 }
 
@@ -62,6 +68,35 @@ function compact(value: number): string {
 export function formatCompact(value: number | null | undefined): string {
   if (!isNumber(value)) return "—";
   return `${compact(value)} $`;
+}
+
+/**
+ * Importe de una operación suelta.
+ *
+ * Aquí **no** se abrevia mientras la cifra quepa, y es a propósito. En una
+ * columna donde unas filas ponen "2,43 mil $" y otras "20,31 $", el ojo se salta
+ * el "mil" al recorrerla y no queda claro si 38,40 son treinta y ocho dólares o
+ * treinta y ocho mil. Con el número entero —"2.431 $" frente a "20,31 $"— la
+ * diferencia de longitud se ve sola y no hay nada que interpretar.
+ *
+ * Por encima del millón sí se abrevia: seis cifras seguidas dejan de leerse de
+ * un vistazo y esas operaciones son raras.
+ */
+export function formatAmount(value: number | null | undefined): string {
+  if (!isNumber(value)) return "—";
+
+  const abs = Math.abs(value);
+  if (abs >= 1e6) return `${compact(value)} $`;
+  // Sin decimales a partir de mil: los céntimos de una operación de 2.431 $ no
+  // aportan nada y solo alargan la columna.
+  if (abs >= 1000) return `${decimals(value, 0, 0)} $`;
+  return `${decimals(value, 2)} $`;
+}
+
+/** Cifra completa, sin abreviar. Para el `title` de un importe abreviado. */
+export function formatExact(value: number | null | undefined): string {
+  if (!isNumber(value)) return "—";
+  return `${decimals(value, 2)} $`;
 }
 
 /** Cantidad grande abreviada sin moneda: "420,69 B" tokens. */

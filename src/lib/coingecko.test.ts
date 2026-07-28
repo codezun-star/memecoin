@@ -145,7 +145,9 @@ describe("formato de cifras", () => {
     assert.equal(formatPrice(0.00002891), "0,00002891 $");
     assert.equal(formatPrice(0.00123), "0,00123 $", "el tramo 0,0001-0,01 usa 7 decimales");
     assert.equal(formatPrice(0.1573), "0,1573 $");
-    assert.equal(formatPrice(3421.77), "3421,77 $");
+    // Con separador de miles: el agrupador por defecto en español se salta las
+    // cifras de cuatro dígitos, y "3421,77 $" se lee peor que "3.421,77 $".
+    assert.equal(formatPrice(3421.77), "3.421,77 $");
   });
 
   test("abrevia las cifras grandes con la escala española", () => {

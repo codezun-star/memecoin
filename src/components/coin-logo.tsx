@@ -6,7 +6,7 @@ import Image from "next/image";
 import type { TrackedCoin } from "@/lib/coins";
 import { cn } from "@/lib/utils";
 
-const SIZES = { sm: 32, md: 44, lg: 64 } as const;
+const SIZES = { xs: 18, sm: 24, md: 44, lg: 64 } as const;
 
 /**
  * Logo de la moneda, con monograma de reserva.
