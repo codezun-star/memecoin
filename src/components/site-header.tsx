@@ -57,8 +57,15 @@ export async function SiteHeader() {
             Ver todas
           </Link>
           <Link
+            href="/operaciones"
+            className="ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+          >
+            <span aria-hidden className="size-1.5 animate-pulse-dot rounded-full bg-up" />
+            En vivo
+          </Link>
+          <Link
             href="/blog"
-            className="ml-2 rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+            className="rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
           >
             Blog
           </Link>

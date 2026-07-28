@@ -24,7 +24,8 @@ un tracker de precios y un foro, con **20 meme coins** trackeadas.
 | Likes en comentarios (con actualización optimista) | ✅ |
 | Borrado de los comentarios propios | ✅ |
 | Esquema SQL con RLS, triggers, permisos y seed | ✅ |
-| Blog en markdown: 20 artículos pre-renderizados | ✅ |
+| Blog en markdown: 31 artículos pre-renderizados y paginados | ✅ |
+| Cinta de operaciones en tiempo real (compras y ventas) | ✅ |
 | Comentarios y likes también en los artículos | ✅ |
 | PWA instalable (sin modo offline, a propósito) | ✅ |
 
@@ -320,6 +321,7 @@ npm run build         # build de producción
 npm run start         # servir el build
 npm test              # pipeline de datos, registro de monedas y contrastes
 npm run coins:verify  # confirma contra la API que los ids de las monedas existen
+npm run pairs:verify  # confirma que los pares de la cinta en vivo existen
 npm run icons:generate # regenera favicon, icono de iOS y tarjeta social
 npm run lint          # ESLint
 npm run typecheck     # TypeScript sin emitir
@@ -372,6 +374,41 @@ un borrador antes de publicarlo.
 El cuerpo del artículo usa una escala tipográfica propia (`prose-plaza`): es la
 única zona del sitio pensada para lectura larga, así que baja el contraste
 cromático y sube el ritmo vertical respecto al resto.
+
+---
+
+## Operaciones en vivo
+
+`/operaciones` muestra cada compra y cada venta según se cruzan en el mercado.
+
+**La conexión la abre el navegador de cada visitante**, no el servidor, y es una
+decisión deliberada:
+
+- Una cinta de operaciones necesita latencia de milisegundos. Sondear un endpoint
+  propio cada pocos segundos daría una lista de cosas que ya pasaron.
+- Retransmitir el flujo desde el servidor obligaría a mantener una conexión
+  persistente por visitante, que es justo lo que un despliegue sin servidor
+  dedicado no sostiene.
+- El flujo es público y no lleva credenciales, así que no hay nada que proteger
+  detrás de un intermediario.
+
+A cambio hay que ser honesto en la interfaz sobre qué se está viendo: **las
+operaciones de un solo mercado**, no del sector completo. La página lo dice.
+
+La clasificación entre compra y venta usa el campo del protocolo que indica si el
+comprador era el creador de la orden: si lo era, quien cruzó el mercado fue el
+vendedor. Es la convención estándar de "lado agresor".
+
+Los pares están en `tradePair` dentro de `src/lib/coins.ts`. Un par equivocado no
+da error visible —el flujo simplemente no manda nada para esa moneda—, así que
+hay un script que lo comprueba:
+
+```bash
+npm run pairs:verify
+```
+
+El endpoint se puede cambiar con `NEXT_PUBLIC_TRADES_WS`, lo que además permite
+apuntar a un servidor de pruebas local.
 
 ---
 

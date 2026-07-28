@@ -254,6 +254,35 @@ export const getPost = cache(async (slug: string): Promise<Post | null> => {
   return null;
 });
 
+/** Artículos por página en el listado. */
+export const POSTS_POR_PAGINA = 9;
+
+export type Paginacion = {
+  posts: PostMeta[];
+  pagina: number;
+  totalPaginas: number;
+  total: number;
+};
+
+/**
+ * Trocea el listado. La página 1 lleva uno más porque el primero se pinta
+ * destacado a ancho completo y dejaría la rejilla coja si no.
+ */
+export async function getPostsPaginados(pagina: number): Promise<Paginacion> {
+  const todos = await getAllPosts();
+  const total = todos.length;
+
+  // En la primera página el destacado va aparte, así que caben POSTS_POR_PAGINA
+  // en la rejilla más el destacado.
+  const enPrimera = POSTS_POR_PAGINA + 1;
+  const totalPaginas = Math.max(1, 1 + Math.ceil(Math.max(0, total - enPrimera) / POSTS_POR_PAGINA));
+
+  const desde = pagina === 1 ? 0 : enPrimera + (pagina - 2) * POSTS_POR_PAGINA;
+  const hasta = pagina === 1 ? enPrimera : desde + POSTS_POR_PAGINA;
+
+  return { posts: todos.slice(desde, hasta), pagina, totalPaginas, total };
+}
+
 /** Fecha legible en español: "12 de marzo de 2026". */
 export function formatPostDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-ES", {

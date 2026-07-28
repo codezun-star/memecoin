@@ -236,6 +236,24 @@ actualiza solo es indistinguible de uno congelado.
   enlaces de navegación.
 - Se respeta `prefers-reduced-motion: reduce`: todas las animaciones se desactivan.
 
+### Aparición al hacer scroll
+
+Implementada con `IntersectionObserver` nativo en `src/components/reveal.tsx`, sin
+librería de animación. La razón es de rendimiento: este sitio vive del
+posicionamiento, y añadir un motor de animación de decenas de kilobytes a todas
+las páginas empeoraría justo las métricas que Google mide. Lo que se necesitaba
+—aparecer al entrar en pantalla, con retardo escalonado— cabe en un componente de
+cien líneas.
+
+Tres reglas que lo hacen seguro:
+
+1. **El HTML del servidor sale visible.** Nada se esconde en el marcado inicial,
+   así que ningún rastreador puede interpretarlo como contenido oculto.
+2. **Solo se anima lo que está por debajo del primer pantallazo.** Animar lo que
+   ya se ve retrasa la sensación de carga en vez de mejorarla.
+3. **Hay red de seguridad de dos segundos.** Si nadie hace scroll, el contenido
+   aparece igualmente. Nunca queda nada invisible.
+
 ## 8. Accesibilidad
 
 - Contraste mínimo AA (4.5:1) para todo el texto; los tokens ya lo cumplen.

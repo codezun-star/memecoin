@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test src/**/*.test.ts",
     "coins:verify": "tsx scripts/verify-coins.ts",
-    "icons:generate": "tsx scripts/generate-icons.ts"
+    "icons:generate": "tsx scripts/generate-icons.ts",
+    "pairs:verify": "tsx scripts/verify-pairs.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

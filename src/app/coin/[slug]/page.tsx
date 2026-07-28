@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { CommentThread } from "@/components/comments/comment-thread";
+import { Reveal } from "@/components/reveal";
 import { LiveMarketsProvider } from "@/components/live-markets-provider";
 import {
   LiveCoinHeader,
@@ -121,12 +122,14 @@ export default async function CoinPage({
           <LivePriceChart coin={coin} points={points} days={days} />
         </section>
 
-        <LiveStatGrid coin={coin} />
+        <Reveal>
+          <LiveStatGrid coin={coin} />
+        </Reveal>
 
-        <section className="surface-card p-5 md:p-6">
+        <Reveal as="section" className="surface-card p-5 md:p-6">
           <h2 className="font-display text-display-md">Sobre {coin.name}</h2>
           <p className="mt-2 max-w-2xl text-ink-soft">{coin.blurb}</p>
-        </section>
+        </Reveal>
 
         <Suspense fallback={<ThreadSkeleton />}>
           <CommentThread

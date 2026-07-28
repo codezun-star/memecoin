@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { TRACKED_COINS } from "@/lib/coins";
-import { getAllPosts } from "@/lib/blog";
+import { getAllPosts, getPostsPaginados } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site-config";
 
 /**
@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
 
   // Los artículos entran solos: publicar un .md lo añade al sitemap.
-  const posts = await getAllPosts();
+  const [posts, { totalPaginas }] = await Promise.all([getAllPosts(), getPostsPaginados(1)]);
 
   return [
     {
@@ -29,11 +29,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     })),
     {
+      url: `${SITE_URL}/operaciones`,
+      lastModified: ahora,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/blog`,
       lastModified: posts[0] ? new Date(posts[0].date) : ahora,
       changeFrequency: "weekly" as const,
       priority: 0.9,
     },
+    // Páginas 2 en adelante del listado: si no entran, los artículos antiguos
+    // dependen de que el rastreador siga los enlaces de paginación.
+    ...Array.from({ length: Math.max(0, totalPaginas - 1) }, (_, i) => ({
+      url: `${SITE_URL}/blog/pagina/${i + 2}`,
+      lastModified: ahora,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
     ...posts.map((post) => ({
       url: `${SITE_URL}/blog/${post.slug}`,
       // La fecha real del artículo, no la del build: es lo que mira un buscador

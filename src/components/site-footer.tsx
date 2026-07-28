@@ -43,6 +43,11 @@ export function SiteFooter() {
           <p className="eyebrow">Sitio</p>
           <ul className="space-y-2 text-sm">
             <li>
+              <Link href="/operaciones" className="text-ink-soft transition-colors hover:text-ink">
+                Operaciones en vivo
+              </Link>
+            </li>
+            <li>
               <Link href="/blog" className="text-ink-soft transition-colors hover:text-ink">
                 Blog
               </Link>

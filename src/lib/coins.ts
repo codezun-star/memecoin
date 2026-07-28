@@ -23,6 +23,7 @@ const COINS = [
     accent: "#F5C542",
     accentInk: "#926C04",
     featured: true,
+    tradePair: "dogeusdt",
     tagline: "El abuelo del meme",
     blurb:
       "Nacida en 2013 como una parodia de Bitcoin, Dogecoin acabó siendo la meme coin más longeva y reconocible del mercado.",
@@ -34,6 +35,7 @@ const COINS = [
     accent: "#FF7A18",
     accentInk: "#BE5000",
     featured: true,
+    tradePair: "shibusdt",
     tagline: "El asesino de Doge",
     blurb:
       "Token ERC-20 lanzado en 2020 con un ecosistema propio (ShibaSwap, Shibarium) construido por una comunidad enorme.",
@@ -45,6 +47,7 @@ const COINS = [
     accent: "#4ADE80",
     accentInk: "#15843E",
     featured: true,
+    tradePair: "pepeusdt",
     tagline: "Meme puro, sin utilidad",
     blurb:
       "Lanzada en 2023 sin impuestos ni roadmap y presumiendo de ello: la tesis es el meme y nada más.",
@@ -56,6 +59,7 @@ const COINS = [
     accent: "#FFB627",
     accentInk: "#9C6700",
     featured: true,
+    tradePair: "bonkusdt",
     tagline: "El perro de Solana",
     blurb:
       "La meme coin que reactivó Solana tras el colapso de FTX, repartida por airdrop a la comunidad del ecosistema.",
@@ -67,6 +71,7 @@ const COINS = [
     accent: "#F77FD0",
     accentInk: "#D70894",
     featured: false,
+    tradePair: "wifusdt",
     tagline: "Un perro con gorro",
     blurb:
       "Un shiba con un gorro de lana rosa. Nació en Solana a finales de 2023 y demostró que no hace falta nada más que una buena imagen.",
@@ -78,6 +83,7 @@ const COINS = [
     accent: "#F2601C",
     accentInk: "#CA4507",
     featured: false,
+    tradePair: "flokiusdt",
     tagline: "El vikingo",
     blurb:
       "Bautizada por el perro de Elon Musk, es de las pocas meme coins que ha construido producto propio alrededor del token.",
@@ -100,6 +106,7 @@ const COINS = [
     accent: "#A77BF3",
     accentInk: "#884BF3",
     featured: false,
+    tradePair: "popcatusdt",
     tagline: "Pop, pop, pop",
     blurb:
       "El gato que abre la boca, uno de los memes más clicados de internet, convertido en token de Solana.",
@@ -122,6 +129,7 @@ const COINS = [
     accent: "#9E4B3C",
     accentInk: "#A0493A",
     featured: false,
+    tradePair: "bomeusdt",
     tagline: "El archivo del meme",
     blurb:
       "Lanzada en Solana en marzo de 2024, fue de las más rápidas de la historia en alcanzar los mil millones de capitalización.",
@@ -166,6 +174,7 @@ const COINS = [
     accent: "#C97B3C",
     accentInk: "#A5612A",
     featured: false,
+    tradePair: "pnutusdt",
     tagline: "En memoria de Peanut",
     blurb:
       "Nacida en noviembre de 2024 como homenaje a Peanut, la ardilla mascota sacrificada por las autoridades de Nueva York.",
@@ -188,6 +197,7 @@ const COINS = [
     accent: "#C36BF5",
     accentInk: "#AC2AF6",
     featured: false,
+    tradePair: "mewusdt",
     tagline: "Un gato entre perros",
     blurb:
       "Su tesis está en el nombre: casi todas las meme coins grandes son perros, así que aquí va un gato.",
@@ -199,6 +209,7 @@ const COINS = [
     accent: "#3FC5E0",
     accentInk: "#147C91",
     featured: false,
+    tradePair: "penguusdt",
     tagline: "Los pingüinos",
     blurb:
       "Token de la colección de NFTs Pudgy Penguins, una de las pocas marcas cripto que ha llegado al mundo físico.",
@@ -210,6 +221,7 @@ const COINS = [
     accent: "#2E9BE6",
     accentInk: "#1277BD",
     featured: false,
+    tradePair: "notusdt",
     tagline: "De tocar la pantalla",
     blurb:
       "Nació como un juego de clics dentro de Telegram y arrastró a millones de personas a la red TON en 2024.",
@@ -221,6 +233,7 @@ const COINS = [
     accent: "#7C6BF5",
     accentInk: "#6C59F8",
     featured: false,
+    tradePair: "turbousdt",
     tagline: "Diseñada por una IA",
     blurb:
       "El experimento de crear una meme coin siguiendo las instrucciones de un modelo de lenguaje. Funcionó.",
@@ -251,6 +264,12 @@ export type TrackedCoin = {
   accentInk: string;
   /** Se muestra en la navegación de la cabecera y en el pie. */
   featured: boolean;
+  /**
+   * Par de Binance para el flujo de operaciones en vivo, en minúsculas.
+   * Ausente = la moneda no aparece en la cinta de operaciones.
+   * Verifica los símbolos con `npm run pairs:verify` antes de fiarte de ellos.
+   */
+  tradePair?: string;
   tagline: string;
   blurb: string;
 };
@@ -261,6 +280,11 @@ export const TRACKED_COINS: TrackedCoin[] = COINS.map((coin) => ({ ...coin, slug
 export const COIN_IDS: CoinKey[] = TRACKED_COINS.map((c) => c.id as CoinKey);
 
 export const FEATURED_COINS = TRACKED_COINS.filter((c) => c.featured);
+
+/** Monedas con par de mercado, las únicas que pueden aparecer en la cinta en vivo. */
+export const TRADABLE_COINS = TRACKED_COINS.filter(
+  (c): c is TrackedCoin & { tradePair: string } => Boolean(c.tradePair),
+);
 
 export function getCoinBySlug(slug: string): TrackedCoin | undefined {
   return TRACKED_COINS.find((c) => c.slug === slug);

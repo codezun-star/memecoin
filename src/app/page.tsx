@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Flame, MessagesSquare, TrendingUp } from "lucide-react";
 
 import { LiveCoinGrid } from "@/components/live-coin-grid";
+import { Reveal } from "@/components/reveal";
 import { LiveMarketsProvider } from "@/components/live-markets-provider";
 import { Button } from "@/components/ui/button";
 import { getMarkets } from "@/lib/coingecko";
@@ -18,7 +19,7 @@ export default function HomePage() {
     <>
       <Hero />
       <section id="mercado" className="shell pb-4 pt-12 md:pt-16">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <Reveal className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="eyebrow mb-1">El parqué</p>
             <h2 className="font-display text-display-md">
@@ -26,7 +27,7 @@ export default function HomePage() {
             </h2>
           </div>
           <p className="text-sm text-ink-faint">Los precios se actualizan solos cada 20 segundos</p>
-        </div>
+        </Reveal>
 
         <Suspense fallback={<CoinGridSkeleton />}>
           <CoinGrid />
@@ -138,14 +139,14 @@ function ValueProps() {
   return (
     <section className="shell pt-16">
       <div className="grid gap-5 md:grid-cols-3">
-        {items.map(({ icon: Icon, title, body }) => (
-          <div key={title} className="surface-card p-6">
+        {items.map(({ icon: Icon, title, body }, i) => (
+          <Reveal key={title} delay={i * 90} className="surface-card p-6">
             <span className="mb-4 grid size-10 place-items-center rounded-full bg-hype-soft text-brand-strong">
               <Icon className="size-5" aria-hidden />
             </span>
             <h3 className="font-display text-lg font-bold">{title}</h3>
             <p className="mt-1.5 text-sm text-ink-soft">{body}</p>
-          </div>
+          </Reveal>
         ))}
       </div>
     </section>

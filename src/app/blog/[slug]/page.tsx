@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, List } from "lucide-react";
 
 import { PostCard } from "@/components/blog/post-card";
+import { Reveal } from "@/components/reveal";
 import { CommentThread } from "@/components/comments/comment-thread";
 import { formatPostDate, getAllPosts, getPost } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site-config";
@@ -197,7 +198,7 @@ export default async function ArticuloPage({ params }: { params: Promise<{ slug:
           <div className="prose prose-plaza" dangerouslySetInnerHTML={{ __html: post.html }} />
 
           {post.faq.length > 0 && (
-            <section className="mt-14 border-t border-line pt-10">
+            <Reveal as="section" className="mt-14 border-t border-line pt-10">
               <h2 className="font-display text-display-md">Preguntas frecuentes</h2>
               <div className="mt-6 space-y-3">
                 {post.faq.map((item) => (
@@ -217,7 +218,7 @@ export default async function ArticuloPage({ params }: { params: Promise<{ slug:
                   </details>
                 ))}
               </div>
-            </section>
+            </Reveal>
           )}
         </article>
 
@@ -225,8 +226,10 @@ export default async function ArticuloPage({ params }: { params: Promise<{ slug:
           <section className="mt-16 border-t border-line pt-10">
             <h2 className="mb-6 font-display text-display-md">Sigue leyendo</h2>
             <div className="grid gap-6 md:grid-cols-3">
-              {relacionados.map((otro) => (
-                <PostCard key={otro.slug} post={otro} />
+              {relacionados.map((otro, i) => (
+                <Reveal key={otro.slug} delay={i * 80}>
+                  <PostCard post={otro} />
+                </Reveal>
               ))}
             </div>
           </section>

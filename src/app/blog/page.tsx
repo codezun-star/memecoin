@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 import { PostCard } from "@/components/blog/post-card";
-import { getAllPosts } from "@/lib/blog";
+import { Paginacion } from "@/components/blog/paginacion";
+import { Reveal } from "@/components/reveal";
+import { getAllPosts, getPostsPaginados } from "@/lib/blog";
 import { SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -19,8 +21,13 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const posts = await getAllPosts();
-  const [destacado, ...resto] = posts;
+  // El listado se pagina; el esquema Blog sí lleva todos los artículos, para
+  // que un buscador tenga la lista completa desde la primera página.
+  const [{ posts: pagina1, totalPaginas }, posts] = await Promise.all([
+    getPostsPaginados(1),
+    getAllPosts(),
+  ]);
+  const [destacado, ...resto] = pagina1;
 
   /**
    * `Blog` + `ItemList` con todos los artículos: le da a Google la lista
@@ -70,11 +77,15 @@ export default async function BlogPage() {
 
             {resto.length > 0 && (
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {resto.map((post) => (
-                  <PostCard key={post.slug} post={post} />
+                {resto.map((post, i) => (
+                  <Reveal key={post.slug} delay={Math.min(i, 5) * 70}>
+                    <PostCard post={post} />
+                  </Reveal>
                 ))}
               </div>
             )}
+
+            <Paginacion pagina={1} totalPaginas={totalPaginas} />
           </div>
         )}
       </div>
