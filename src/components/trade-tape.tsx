@@ -11,9 +11,18 @@ import { formatCompact, formatPrice } from "@/lib/format";
 import { useLiveTrades, type EstadoConexion } from "@/lib/use-live-trades";
 import { cn } from "@/lib/utils";
 
-const ESTADO: Record<EstadoConexion, { texto: string; clase: string; late: boolean }> = {
+const ESTADO: Record<
+  EstadoConexion,
+  { texto: string; clase: string; late: boolean; detalle?: string }
+> = {
   conectando: { texto: "Conectando", clase: "text-ink-faint", late: true },
   "en-vivo": { texto: "En vivo", clase: "text-up", late: true },
+  diferido: {
+    texto: "En diferido",
+    clase: "text-doge-ink",
+    late: true,
+    detalle: "Tu red no permite la conexión directa, así que las operaciones llegan en tandas de unos segundos.",
+  },
   reconectando: { texto: "Reconectando", clase: "text-doge-ink", late: true },
   error: { texto: "Sin conexión", clase: "text-down", late: false },
 };
@@ -103,7 +112,10 @@ export function TradeTape() {
 
       {/* Estado y resumen */}
       <div className="surface-card flex flex-wrap items-center gap-x-6 gap-y-3 p-4">
-        <span className={cn("inline-flex items-center gap-2 text-sm font-medium", info.clase)}>
+        <span
+          className={cn("inline-flex items-center gap-2 text-sm font-medium", info.clase)}
+          title={info.detalle}
+        >
           <span
             aria-hidden
             className={cn("size-2 rounded-full bg-current", info.late && "animate-pulse-dot")}
@@ -136,6 +148,10 @@ export function TradeTape() {
         </div>
       </div>
 
+      {info.detalle && (
+        <p className="-mt-2 text-xs text-ink-faint">{info.detalle}</p>
+      )}
+
       {/* La cinta */}
       {seleccion.length === 0 ? (
         <p className="surface-card p-12 text-center text-sm text-ink-faint">
@@ -146,10 +162,11 @@ export function TradeTape() {
           {estado === "error" ? (
             <>
               <p className="text-sm text-ink-soft">
-                No se ha podido abrir la conexión de operaciones en vivo.
+                No hay operaciones disponibles en este momento.
               </p>
               <p className="mt-2 text-sm text-ink-faint">
-                Puede que tu red o tu navegador estén bloqueando la conexión. Los precios de{" "}
+                Puede ser tu red o el propio mercado. Vuelve a intentarlo en un minuto; los precios
+                de{" "}
                 <Link href="/#mercado" className="text-brand-strong hover:underline">
                   el mercado
                 </Link>{" "}

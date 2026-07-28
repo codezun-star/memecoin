@@ -86,18 +86,59 @@ export function LivePriceChart({
   return <PriceChart data={points} coin={coin} days={days} livePrice={livePrice} />;
 }
 
-/** Variación en el rango elegido, calculada sobre la serie que se está viendo. */
-export function RangeChangeBadge({ points, coin }: { points: ChartPoint[]; coin: TrackedCoin }) {
+/**
+ * Variación en el rango elegido.
+ *
+ * En 24 h se usa **la cifra oficial del mercado**, exactamente la misma que
+ * muestra la cabecera. Calcularla por nuestra cuenta sobre la serie del gráfico
+ * daba un número parecido pero distinto, y dos porcentajes que dicen «24 h» y no
+ * coinciden solo hacen dudar de los dos.
+ *
+ * La diferencia no era un fallo de cálculo: la serie del gráfico viene agrupada
+ * en tramos de unos minutos y su primer punto no cae en el mismo instante que la
+ * referencia que usa el mercado para su porcentaje de 24 h. Con precios que se
+ * mueven varios puntos en un día, ese desfase de arranque se nota.
+ *
+ * Para el resto de rangos no existe cifra oficial, así que sí se calcula sobre
+ * la serie —de primer punto a precio actual— y se etiqueta con el rango para que
+ * quede claro que mide otra cosa.
+ */
+export function RangeChangeBadge({
+  points,
+  coin,
+  days,
+  etiqueta,
+}: {
+  points: ChartPoint[];
+  coin: TrackedCoin;
+  days: number;
+  etiqueta: string;
+}) {
   const { byId } = useLiveMarketsContext();
-  const livePrice = byId.get(coin.id)?.current_price ?? null;
+  const market = byId.get(coin.id) ?? null;
+
+  if (days === 1) {
+    const oficial = market?.price_change_percentage_24h;
+    if (oficial == null) return null;
+    return <Variacion valor={oficial} etiqueta={etiqueta} />;
+  }
 
   if (points.length < 2) return null;
 
   const first = points[0].p;
-  const last = livePrice ?? points[points.length - 1].p;
+  const last = market?.current_price ?? points[points.length - 1].p;
   if (first === 0) return null;
 
-  return <ChangeBadge value={((last - first) / first) * 100} size="sm" />;
+  return <Variacion valor={((last - first) / first) * 100} etiqueta={etiqueta} />;
+}
+
+function Variacion({ valor, etiqueta }: { valor: number; etiqueta: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <ChangeBadge value={valor} size="sm" />
+      <span className="text-xs text-ink-faint">en {etiqueta}</span>
+    </span>
+  );
 }
 
 export function LiveStatGrid({ coin }: { coin: TrackedCoin }) {

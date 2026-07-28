@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Reveal } from "@/components/reveal";
 import { TradeTape } from "@/components/trade-tape";
 import { TRADABLE_COINS } from "@/lib/coins";
 import { SITE_URL } from "@/lib/site-config";
@@ -31,7 +32,7 @@ export default function OperacionesPage() {
 
       <TradeTape />
 
-      <section className="surface-sunken mt-12 max-w-3xl p-6">
+      <Reveal as="section" className="surface-sunken mt-12 max-w-3xl p-6">
         <h2 className="font-display text-lg font-bold">Cómo leer esta pantalla</h2>
         <div className="mt-3 space-y-3 text-sm text-ink-soft">
           <p>
@@ -51,15 +52,19 @@ export default function OperacionesPage() {
             descentralizados. Sirve para ver el pulso, no para medir el volumen del sector.
           </p>
           <p>
-            La conexión la abre tu propio navegador. Si tu red la bloquea, la página lo dirá en vez
-            de quedarse en blanco, y el resto del sitio sigue funcionando igual.
+            La conexión la abre tu propio navegador. Si tu red la bloquea —pasa en oficinas y en
+            algunas conexiones móviles—, la cinta pasa a traer las operaciones a través de nuestro
+            servidor: siguen siendo reales, llegan con unos segundos de retraso y la etiqueta de
+            arriba lo indica como <strong className="text-ink">En diferido</strong>.
           </p>
         </div>
-      </section>
+      </Reveal>
 
-      <p className="mt-6 text-xs text-ink-faint">
-        Monedas disponibles en la cinta: {TRADABLE_COINS.map((c) => c.symbol).join(", ")}.
-      </p>
+      <Reveal as="section" className="mt-6">
+        <p className="text-xs text-ink-faint">
+          Monedas disponibles en la cinta: {TRADABLE_COINS.map((c) => c.symbol).join(", ")}.
+        </p>
+      </Reveal>
     </div>
   );
 }

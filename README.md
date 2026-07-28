@@ -137,6 +137,24 @@ de propagar `NaN`** hasta la pantalla. Hay 15 pruebas cubriendo esto:
 npm test
 ```
 
+### Por qué solo hay una cifra de 24 h
+
+En la ficha de una moneda hay dos sitios donde podría aparecer la variación de
+24 h: la cabecera y la etiqueta junto al gráfico. Durante un tiempo no coincidían
+—una decía −7,50 % y la otra −6,66 %— y no era un error de cálculo.
+
+La cabecera usa `price_change_percentage_24h`, el porcentaje oficial del
+proveedor. La etiqueta del gráfico lo calculaba sobre la serie que se estaba
+dibujando, y esa serie viene agrupada en tramos de varios minutos: su primer
+punto no cae en el mismo instante que la referencia del proveedor. Con precios
+que se mueven varios puntos en un día, ese desfase de arranque se nota.
+
+Dos porcentajes que dicen «24 h» y no coinciden hacen dudar de los dos, así que
+ahora **en el rango de 24 h se muestra la cifra oficial en los dos sitios**. Para
+7 d, 30 d, 90 d y 1 a no existe cifra oficial, de modo que sí se calcula sobre la
+serie y se etiqueta con el rango (`+12,4 % en 7 d`) para que quede claro que mide
+otra cosa. Está en `RangeChangeBadge`, en `src/components/coin-live.tsx`.
+
 ---
 
 ## Activar Google o Discord más adelante
@@ -394,6 +412,32 @@ decisión deliberada:
 
 A cambio hay que ser honesto en la interfaz sobre qué se está viendo: **las
 operaciones de un solo mercado**, no del sector completo. La página lo dice.
+
+### Cuando la red del visitante bloquea la conexión
+
+Abrir la conexión desde el navegador tiene un coste: hay redes que no la dejan
+pasar. Redes de empresa, algunos operadores móviles y no pocos antivirus cortan
+los puertos poco habituales, y el navegador no avisa de forma limpia: se queda
+callado. Por eso la cinta tiene tres niveles:
+
+1. **Se prueban varios hosts, en orden.** El primero va por el puerto estándar,
+   el mismo que cualquier página web, así que atraviesa casi cualquier red. El de
+   puerto no estándar va el último, que es el que más veces se encuentra cerrado.
+   Si un host no abre en seis segundos se da por perdido y se pasa al siguiente:
+   sin ese límite la página se quedaba en «Conectando» durante más de un minuto.
+2. **Si ninguno abre, se sondea `/api/trades`**, que trae las últimas operaciones
+   desde el servidor por una vía que ninguna red corta. Se pierde el directo
+   exacto —llegan en tandas de unos segundos— pero los datos son los mismos, y la
+   interfaz lo etiqueta como **En diferido** en vez de fingir que es tiempo real.
+3. **Si tampoco eso da nada**, se dice claramente, sin dejar la pantalla vacía.
+
+Lo aprendido sobre la red se recuerda durante la sesión: si un host no abre aquí,
+no se vuelve a probar cada vez que alguien cambia de moneda.
+
+`/api/trades` filtra por lista blanca contra `TRADABLE_COINS`, así que a la
+petición de salida solo llegan símbolos que están en el repositorio, nunca texto
+de quien llama. Devuelve siempre 200, incluso sin datos: un error delataría el
+estado de un servicio ajeno y llenaría la consola del navegador en cada sondeo.
 
 La clasificación entre compra y venta usa el campo del protocolo que indica si el
 comprador era el creador de la orden: si lo era, quien cruzó el mercado fue el

@@ -64,6 +64,7 @@ export default async function CoinPage({
 
   const parsedDays = Number(range);
   const days = RANGES.some((r) => r.days === parsedDays) ? parsedDays : DEFAULT_DAYS;
+  const etiquetaRango = RANGES.find((r) => r.days === days)?.label ?? "el periodo";
 
   // Se piden los mercados de todas las monedas, no solo esta: es la misma
   // llamada que sirve /api/markets, así que comparten cache y el sondeo en vivo
@@ -96,7 +97,12 @@ export default async function CoinPage({
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <h2 className="font-display text-display-md">Precio</h2>
-              <RangeChangeBadge points={points} coin={coin} />
+              <RangeChangeBadge
+                points={points}
+                coin={coin}
+                days={days}
+                etiqueta={etiquetaRango}
+              />
             </div>
 
             <nav aria-label="Rango temporal" className="flex flex-wrap gap-1 rounded-full bg-sunken p-1">
