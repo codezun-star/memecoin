@@ -119,6 +119,14 @@ export default async function CoinPage({
   const points: ChartPoint[] = (chart?.prices ?? []).map(([t, p]) => ({ t, p }));
   const url = `${SITE_URL}/coin/${coin.slug}`;
   const relacionadas = monedasRelacionadas(coin);
+
+  // Logos de las relacionadas. Se sacan de los mercados que ya se han pedido
+  // arriba, así que no cuesta ninguna llamada extra. Si el proveedor no responde,
+  // cada tarjeta cae sola a su monograma de color.
+  const logos: Record<string, string> = {};
+  for (const market of markets ?? []) {
+    if (market.image) logos[market.id] = market.image;
+  }
   const indice = ficha?.headings.filter((h) => h.level === 2) ?? [];
 
   /**
@@ -335,7 +343,7 @@ export default async function CoinPage({
                     href={`/coin/${otra.slug}`}
                     className="flex items-center gap-3 rounded-card border border-line p-3 transition-colors hover:border-line-strong hover:bg-sunken"
                   >
-                    <CoinLogo coin={otra} size="sm" />
+                    <CoinLogo coin={otra} src={logos[otra.id]} size="md" />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-ink">
                         {otra.name}
