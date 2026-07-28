@@ -12,7 +12,7 @@ export default async function ProfilePage() {
     return (
       <div className="shell py-16">
         <div className="surface-card mx-auto max-w-xl p-6 text-sm text-doge-ink">
-          El perfil necesita Supabase configurado.
+          Tu perfil no está disponible en este momento. Vuelve a intentarlo en un rato.
         </div>
       </div>
     );

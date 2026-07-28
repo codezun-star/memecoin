@@ -59,8 +59,8 @@ export function LiveCoinHeader({ coin }: { coin: TrackedCoin }) {
 
       {!market && (
         <p role="status" className="relative mt-4 text-sm text-doge-ink">
-          CoinGecko no ha devuelto datos ahora mismo (posible límite de peticiones). El debate sigue
-          disponible más abajo.
+          Los datos de mercado no están disponibles en este momento. El debate sigue disponible
+          más abajo.
         </p>
       )}
     </header>

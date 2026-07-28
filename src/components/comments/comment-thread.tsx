@@ -36,9 +36,7 @@ export async function CommentThread({ coin }: { coin: TrackedCoin }) {
 
       {!isSupabaseConfigured ? (
         <div className="rounded-input border border-doge/40 bg-doge-soft px-4 py-3 text-sm text-doge-ink">
-          El foro necesita Supabase. Copia <code className="font-mono">.env.example</code> a{" "}
-          <code className="font-mono">.env.local</code>, añade tus claves y ejecuta la migración de{" "}
-          <code className="font-mono">supabase/migrations</code>.
+          El debate no está disponible en este momento. Vuelve a intentarlo en un rato.
         </div>
       ) : viewer ? (
         <div className="surface-sunken p-4">

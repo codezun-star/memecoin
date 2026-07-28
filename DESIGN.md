@@ -51,25 +51,39 @@ armonizar con las marcas de las monedas.
 
 ### 2.2 Colores de marca (uno por moneda)
 
-Cada moneda tiene un color propio que tiñe su tarjeta, su franja superior y los
-acentos de su página de detalle. Es el recurso principal de identidad.
+Cada una de las **20 monedas** tiene un color propio que tiñe su tarjeta, su
+franja superior y los acentos de su página de detalle. Es el recurso principal de
+identidad.
 
 Sobre fondo claro un amarillo o un verde vivos **no se leen como texto**, así que
 cada moneda tiene dos variantes y no son intercambiables:
 
-| Moneda | `accent` (vivo) | `accentInk` (AA) | Contraste de `accentInk` |
-| --- | --- | --- | --- |
-| Shiba Inu | `#FF7A18` | `#C4500A` | 4,52:1 |
-| Dogecoin | `#F5C542` | `#8A6B00` | 4,86:1 |
-| Pepe | `#4ADE80` | `#14803F` | 4,86:1 |
-| Bonk | `#FFB627` | `#9A6300` | 4,89:1 |
-
 - **`accent`** → logos, franjas, halos, relleno del área del gráfico.
 - **`accentInk`** → texto, trazo del gráfico, iconos y estados activos.
 
-Ambas viajan como variables CSS por página (`--coin-accent`, `--coin-accent-ink`,
-`--coin-accent-soft`) para que los componentes genéricos se tiñan solos sin
-lógica condicional por moneda.
+Las variantes `accentInk` **no están elegidas a ojo**: se generan oscureciendo el
+tono del `accent` (manteniendo matiz y saturación) hasta pasar 4,6:1 sobre crema
+y sobre blanco. `src/lib/coins.test.ts` lo vuelve a comprobar en cada ejecución de
+`npm test`, junto con dos reglas más:
+
+- `accent` siempre más claro que `accentInk` (si se invierten, los rellenos salen
+  oscuros y los textos ilegibles).
+- Ningún `accentInk` puede acercarse a los tokens `up` o `down`, para que un trazo
+  de color nunca se confunda con "sube" o "baja". Pepe es la única excepción
+  asumida: es verde por definición.
+
+Las cuatro originales, como referencia:
+
+| Moneda | `accent` (vivo) | `accentInk` (AA) |
+| --- | --- | --- |
+| Shiba Inu | `#FF7A18` | `#BE5000` |
+| Dogecoin | `#F5C542` | `#926C04` |
+| Pepe | `#4ADE80` | `#15843E` |
+| Bonk | `#FFB627` | `#9C6700` |
+
+Ambas viajan como variables CSS por página (`--coin-accent`, `--coin-accent-ink`)
+para que los componentes genéricos se tiñan solos sin lógica condicional por
+moneda.
 
 ### 2.3 Primarios de UI
 
@@ -229,6 +243,8 @@ actualiza solo es indistinguible de uno congelado.
 - Foco visible en todo elemento interactivo; nunca `outline: none` sin sustituto.
 - Los botones de icono llevan `aria-label`; el botón de like expone `aria-pressed`.
 - Objetivos táctiles ≥ 40 px de alto.
+- Los mensajes de error dicen qué puede hacer la persona, no qué falló por dentro
+  (ver "Textos de cara al usuario" en el README).
 
 ---
 

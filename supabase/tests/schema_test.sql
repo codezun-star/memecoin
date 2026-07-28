@@ -39,7 +39,8 @@ end $$;
 
 \echo '>>> Ejecutando la migración'
 \ir ../migrations/0001_init.sql
-\echo '>>> Migración OK'
+\ir ../migrations/0002_more_coins.sql
+\echo '>>> Migraciones OK'
 
 -- ---------------------------------------------------------------------------
 \echo ''
@@ -63,8 +64,10 @@ select username from public.profiles where id = '33333333-3333-3333-3333-3333333
 insert into auth.users (id, email) values ('44444444-4444-4444-4444-444444444444', 'pepe.lover@test.com');
 select username from public.profiles where id = '44444444-4444-4444-4444-444444444444';
 
-\echo '### 5. Las 4 monedas del seed'
-select id, symbol, accent from public.coins order by sort_order;
+\echo '### 5. Catálogo sembrado (debe haber 20 y ninguna sin accent_ink)'
+select count(*) as monedas,
+       count(accent_ink) as con_accent_ink
+  from public.coins;
 
 -- ---------------------------------------------------------------------------
 \echo ''

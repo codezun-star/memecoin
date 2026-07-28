@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { TRACKED_COINS } from "@/lib/coins";
+import { FEATURED_COINS, TRACKED_COINS } from "@/lib/coins";
 
 export function SiteFooter() {
   return (
@@ -11,26 +11,34 @@ export function SiteFooter() {
             Memecoin<span className="text-hype"> Plaza</span>
           </p>
           <p className="text-sm text-ink-faint">
-            Precios vía la API pública de CoinGecko. Esto no es asesoramiento financiero: es un
-            foro de internet sobre monedas de perros y ranas.
+            Esto no es asesoramiento financiero: es un foro de internet sobre monedas de perros y
+            ranas. Los precios pueden llevar unos segundos de retraso.
           </p>
         </div>
 
         <nav aria-label="Monedas" className="space-y-3">
           <p className="eyebrow">Monedas</p>
           <ul className="space-y-2 text-sm">
-            {TRACKED_COINS.map((coin) => (
+            {FEATURED_COINS.map((coin) => (
               <li key={coin.id}>
-                <Link href={`/coin/${coin.slug}`} className="text-ink-soft transition-colors hover:text-ink">
+                <Link
+                  href={`/coin/${coin.slug}`}
+                  className="text-ink-soft transition-colors hover:text-ink"
+                >
                   {coin.name}
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/#mercado" className="text-brand-strong hover:underline">
+                Ver las {TRACKED_COINS.length}
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
       <div className="shell border-t border-line py-5 text-xs text-ink-faint">
-        © {new Date().getFullYear()} Memecoin Plaza · Hecho con Next.js y Supabase
+        © {new Date().getFullYear()} Memecoin Plaza · Datos de mercado por CoinGecko
       </div>
     </footer>
   );

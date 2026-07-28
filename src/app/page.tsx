@@ -3,25 +3,29 @@ import Link from "next/link";
 import { Flame, MessagesSquare, TrendingUp } from "lucide-react";
 
 import { LiveCoinGrid } from "@/components/live-coin-grid";
+import { LiveMarketsProvider } from "@/components/live-markets-provider";
 import { Button } from "@/components/ui/button";
 import { getMarkets } from "@/lib/coingecko";
 import { getCommentCounts } from "@/lib/comments";
 import { TRACKED_COINS } from "@/lib/coins";
 
-// Los precios se refrescan como mucho una vez por minuto (límite del tier público).
+// El primer pintado se sirve cacheado hasta un minuto; a partir de ahí el
+// cliente mantiene los precios frescos por su cuenta.
 export const revalidate = 60;
 
 export default function HomePage() {
   return (
     <>
       <Hero />
-      <section className="shell pb-4 pt-12 md:pt-16">
+      <section id="mercado" className="shell pb-4 pt-12 md:pt-16">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="eyebrow mb-1">El parqué</p>
-            <h2 className="font-display text-display-md">Las cuatro grandes</h2>
+            <h2 className="font-display text-display-md">
+              Las {TRACKED_COINS.length} que importan
+            </h2>
           </div>
-          <p className="text-sm text-ink-faint">Precios vía CoinGecko · se actualizan solos cada 20 s</p>
+          <p className="text-sm text-ink-faint">Los precios se actualizan solos cada 20 segundos</p>
         </div>
 
         <Suspense fallback={<CoinGridSkeleton />}>
@@ -59,12 +63,12 @@ function Hero() {
         </h1>
 
         <p className="mt-5 max-w-xl text-lg text-ink-soft">
-          Dogecoin, Shiba Inu, Pepe y Bonk en una sola pantalla. Mira el gráfico, lee lo que dice
-          la comunidad y suelta tu tesis.
+          Las {TRACKED_COINS.length} meme coins que mueven el mercado, en una sola pantalla. Mira el
+          gráfico, lee lo que dice la comunidad y suelta tu tesis.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="#contenido">
+          <Link href="#mercado">
             <Button size="lg">Ver el mercado</Button>
           </Link>
           <Link href="/signup">
@@ -82,9 +86,13 @@ async function CoinGrid() {
   // Precios y contadores de comentarios en paralelo: son fuentes independientes.
   const [markets, commentCounts] = await Promise.all([getMarkets(), getCommentCounts()]);
 
-  // A partir de aquí manda el cliente: sondea /api/markets y mantiene los
-  // precios al día sin recargar la página.
-  return <LiveCoinGrid initialMarkets={markets} commentCounts={commentCounts} />;
+  // A partir de aquí manda el cliente: sondea y mantiene los precios al día sin
+  // recargar la página.
+  return (
+    <LiveMarketsProvider initialMarkets={markets}>
+      <LiveCoinGrid commentCounts={commentCounts} />
+    </LiveMarketsProvider>
+  );
 }
 
 function CoinGridSkeleton() {
@@ -113,7 +121,7 @@ function ValueProps() {
     {
       icon: TrendingUp,
       title: "Datos, no humo",
-      body: "Precio, capitalización, volumen y gráfico de cada moneda, directos de la API de CoinGecko.",
+      body: "Precio, capitalización, volumen y gráfico de cada moneda, al día y sin recargar.",
     },
     {
       icon: MessagesSquare,

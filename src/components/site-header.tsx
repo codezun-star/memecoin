@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/components/ui/button";
-import { TRACKED_COINS } from "@/lib/coins";
+import { FEATURED_COINS } from "@/lib/coins";
 import { getSessionUser } from "@/lib/supabase/server";
 
 export async function SiteHeader() {
@@ -20,8 +20,9 @@ export async function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label="Monedas" className="hidden flex-1 items-center gap-1 lg:flex">
-          {TRACKED_COINS.map((coin) => (
+        {/* Solo las destacadas: con el catálogo completo la cabecera se desbordaría. */}
+        <nav aria-label="Monedas destacadas" className="hidden flex-1 items-center gap-1 lg:flex">
+          {FEATURED_COINS.map((coin) => (
             <Link
               key={coin.id}
               href={`/coin/${coin.slug}`}
@@ -36,6 +37,12 @@ export async function SiteHeader() {
               />
             </Link>
           ))}
+          <Link
+            href="/#mercado"
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-brand-strong transition-colors hover:underline"
+          >
+            Ver todas
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">

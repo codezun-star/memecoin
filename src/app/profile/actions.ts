@@ -16,7 +16,7 @@ export async function updateProfile(
   _prev: ProfileState,
   formData: FormData,
 ): Promise<ProfileState> {
-  if (!isSupabaseConfigured) return { error: "Supabase no está configurado." };
+  if (!isSupabaseConfigured) return { error: "No se han podido guardar los cambios ahora mismo." };
 
   const username = String(formData.get("username") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();

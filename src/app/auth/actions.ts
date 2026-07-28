@@ -16,25 +16,37 @@ export type AuthState = {
 const USERNAME_RE = /^[A-Za-z0-9_]{3,24}$/;
 
 const NOT_CONFIGURED: AuthState = {
-  error: "Supabase no está configurado. Copia .env.example a .env.local y añade tus claves.",
+  error: "El acceso no está disponible en este momento. Vuelve a intentarlo en un rato.",
 };
 
 /**
- * Traduce los errores de Supabase (en inglés y a veces crípticos) a mensajes
- * accionables. Cualquier otro se deja pasar tal cual para no ocultar bugs.
+ * Traduce los errores del proveedor de identidad a mensajes accionables.
+ *
+ * Los que no están en el mapa **no se muestran tal cual**: un mensaje del
+ * proveedor puede nombrar el servicio, la configuración del proyecto o detalles
+ * internos, y eso no tiene por qué salir a la pantalla de un visitante. El
+ * original se registra en el servidor, que es donde sirve para depurar.
  */
 function translateAuthError(message: string): string {
   const map: Record<string, string> = {
     "Invalid login credentials": "Email o contraseña incorrectos.",
-    // Con "Confirm email" desactivado esto solo puede saltar en cuentas creadas
-    // antes de desactivarlo: desactivarlo no confirma retroactivamente a nadie.
-    "Email not confirmed":
-      "Esta cuenta se quedó sin confirmar. Confírmala desde Supabase o regístrate de nuevo.",
+    // Solo puede saltar en cuentas creadas cuando la confirmación estaba
+    // activada: desactivarla no confirma retroactivamente a nadie.
+    "Email not confirmed": "Esta cuenta todavía no está activada. Regístrate de nuevo.",
     "User already registered": "Ya existe una cuenta con ese email.",
-    "Password should be at least 6 characters":
-      "La contraseña debe tener al menos 6 caracteres.",
+    "Password should be at least 6 characters": "La contraseña debe tener al menos 6 caracteres.",
+    "Signup requires a valid password": "Escribe una contraseña válida.",
+    "Unable to validate email address: invalid format": "Ese email no tiene un formato válido.",
+    "Email rate limit exceeded": "Demasiados intentos. Espera unos minutos y vuelve a probar.",
+    "For security purposes, you can only request this after 60 seconds.":
+      "Espera un minuto antes de volver a intentarlo.",
   };
-  return map[message] ?? message;
+
+  const traducido = map[message];
+  if (traducido) return traducido;
+
+  console.error("[auth] error sin traducir:", message);
+  return "No hemos podido completar la operación. Inténtalo otra vez.";
 }
 
 export async function signInWithPassword(

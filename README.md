@@ -1,7 +1,7 @@
 # 🐕 Memecoin Plaza
 
 Web comunitaria para meme coins: precios en tiempo real + foro. Un cruce entre
-CoinGecko y un foro, centrado en **Dogecoin, Shiba Inu, Pepe y Bonk**.
+un tracker de precios y un foro, con **20 meme coins** trackeadas.
 
 **Producción:** https://memecoin.codezun.com
 **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS · Supabase · Vercel.
@@ -12,7 +12,8 @@ CoinGecko y un foro, centrado en **Dogecoin, Shiba Inu, Pepe y Bonk**.
 
 | Funcionalidad | Estado |
 | --- | --- |
-| Home con tarjetas de las 4 monedas (logo, precio, % 24 h, mini gráfico) | ✅ |
+| Home con 20 monedas (logo, precio, % 24 h, mini gráfico), ordenadas por capitalización | ✅ |
+| Buscador por nombre o símbolo | ✅ |
 | **Precios en tiempo real**, refrescándose solos cada 20 s sin recargar | ✅ |
 | Página de detalle (precio, capitalización, volumen, máx./mín., ATH) | ✅ |
 | Gráfico con rangos 24 h / 7 d / 30 d / 90 d / 1 año, rejilla, tooltip y línea de referencia | ✅ |
@@ -50,14 +51,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 ### 3. Ejecutar la migración
 
-**SQL Editor → New query**, pega
-[`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) y ejecútalo.
+**SQL Editor → New query** y ejecuta **las dos, en orden**:
 
-> **Si ya la habías ejecutado antes, vuelve a ejecutarla.** Es idempotente y se le
-> han añadido dos cosas necesarias: los `GRANT` explícitos a `anon` y
-> `authenticated` (sin ellos, según cómo esté el proyecto, las políticas de RLS
-> pueden quedar tapadas por un "permission denied" a nivel de tabla) y la columna
-> `coins.accent_ink`.
+1. [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) — tablas, RLS, triggers y permisos.
+2. [`supabase/migrations/0002_more_coins.sql`](supabase/migrations/0002_more_coins.sql) — catálogo de 20 monedas.
+
+> **Si ya habías ejecutado la primera, vuelve a ejecutarla igualmente.** Ambas son
+> idempotentes, y a la 0001 se le añadieron los `GRANT` explícitos a `anon` y
+> `authenticated`: sin ellos, según cómo esté el proyecto, las políticas de RLS
+> pueden quedar tapadas por un "permission denied" a nivel de tabla.
 
 ### 4. URLs de autenticación
 
@@ -279,23 +281,65 @@ supabase/migrations/0001_init.sql
 
 ### Añadir una moneda nueva
 
-1. Añade la entrada en `src/lib/coins.ts` (el `id` es el de CoinGecko).
-2. Añade la fila equivalente en el `insert` de la migración.
+1. Añade la entrada en `src/lib/coins.ts`. El `id` es el de CoinGecko: sale de la
+   URL de la moneda en su web (`coingecko.com/en/coins/dogwifcoin` → `dogwifcoin`).
+2. Añade la fila equivalente en una migración.
+3. Ejecuta las comprobaciones:
 
-No hay que tocar ninguna pantalla.
+   ```bash
+   npm run coins:verify   # confirma que el id existe y devuelve datos
+   npm test               # colores AA, ids únicos, formato del id
+   ```
+
+`coins:verify` no es opcional: un id equivocado **no da error en ninguna parte**.
+La API simplemente no devuelve esa moneda y la tarjeta se queda con guiones para
+siempre. El script convierte ese fallo silencioso en uno ruidoso y sale con
+código 1, así que sirve tal cual en CI.
+
+No hay que tocar ninguna pantalla: la home, el detalle y el foro salen del
+registro. Si quieres que aparezca en la cabecera y el pie, marca `featured: true`
+(pero no más de seis: la cabecera se desborda).
 
 ---
 
 ## Comandos
 
 ```bash
-npm run dev        # desarrollo
-npm run build      # build de producción
-npm run start      # servir el build
-npm test           # pruebas del pipeline de datos
-npm run lint       # ESLint
-npm run typecheck  # TypeScript sin emitir
+npm run dev           # desarrollo
+npm run build         # build de producción
+npm run start         # servir el build
+npm test              # pipeline de datos, registro de monedas y contrastes
+npm run coins:verify  # confirma contra la API que los ids de las monedas existen
+npm run lint          # ESLint
+npm run typecheck     # TypeScript sin emitir
 ```
+
+---
+
+## Textos de cara al usuario
+
+Regla del proyecto: **la interfaz no nombra la tecnología ni el estado de la
+configuración.** Ni el framework, ni la base de datos, ni el proveedor de precios,
+ni nombres de variables de entorno o de ficheros de migración.
+
+Aplica sobre todo a los errores. Un visitante que ve "no se ha podido cargar" ya
+tiene toda la información que puede accionar; decirle *qué* servicio ha fallado o
+*qué* variable falta no le sirve de nada y expone la infraestructura. El detalle
+real se registra en el servidor con `console.error`, que es donde sirve.
+
+En concreto:
+
+- Los errores del proveedor de identidad se traducen mediante un mapa explícito
+  en `src/app/auth/actions.ts`. Los que no están en el mapa **no se muestran tal
+  cual**: se registran y el usuario ve un mensaje genérico.
+- `/api/markets` responde siempre 200, incluso sin precios. El endpoint funcionó;
+  quien falló fue la fuente, y eso viaja en el campo `error`.
+- `poweredByHeader` está desactivado en `next.config.ts`.
+- La única mención externa que queda es "Datos de mercado por CoinGecko" en el
+  pie, como atribución de la fuente de datos.
+
+Esta regla es sobre la **interfaz**. Este README y `DESIGN.md` son documentación
+de desarrollo y sí hablan de la tecnología: es su función.
 
 ---
 

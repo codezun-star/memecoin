@@ -11,7 +11,6 @@
        `-ink` es la variante con contraste AA, para texto y trazos. */
     --coin-accent: #ff7a18;
     --coin-accent-ink: #c4500a;
-    --coin-accent-soft: rgba(255, 122, 24, 0.1);
   }
 
   * {

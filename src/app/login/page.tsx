@@ -27,7 +27,7 @@ export default async function LoginPage({
             className="rounded-input border border-down/30 bg-down-soft px-4 py-3 text-sm text-down"
           >
             {error === "supabase"
-              ? "Supabase no está configurado en este entorno."
+              ? "El acceso no está disponible en este momento. Vuelve a intentarlo en un rato."
               : error === "oauth_disabled"
                 ? "Ese método de acceso no está activado. Entra con tu email y contraseña."
                 : "No hemos podido completar el acceso. Inténtalo otra vez."}

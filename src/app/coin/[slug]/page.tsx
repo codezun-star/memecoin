@@ -78,7 +78,6 @@ export default async function CoinPage({
         style={{
           ["--coin-accent" as string]: coin.accent,
           ["--coin-accent-ink" as string]: coin.accentInk,
-          ["--coin-accent-soft" as string]: coin.accentSoft,
         }}
         className="shell space-y-6 py-8 md:py-12"
       >

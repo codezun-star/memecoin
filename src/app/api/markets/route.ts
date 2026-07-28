@@ -48,7 +48,7 @@ export async function GET() {
     markets,
     fetchedAt: Date.now(),
     cached: false,
-    error: markets ? null : "No se han podido obtener los precios de CoinGecko.",
+    error: markets ? null : "Los precios no están disponibles en este momento.",
   };
 
   // Un fallo puntual no debe tirar el último dato bueno: si CoinGecko falla,
@@ -64,8 +64,10 @@ export async function GET() {
 
   cache = { payload, at: Date.now() };
 
-  return NextResponse.json(payload, {
-    status: markets ? 200 : 503,
-    headers: { "cache-control": "no-store" },
-  });
+  // Siempre 200, incluso sin precios. El endpoint ha respondido correctamente;
+  // quien falla es la fuente de datos, y eso ya viaja en `error`. Devolver 503
+  // hacía que el navegador registrase un error en consola en cada sondeo
+  // fallido, ruido que no ayuda a nadie y que además delata el estado de un
+  // servicio externo.
+  return NextResponse.json(payload, { headers: { "cache-control": "no-store" } });
 }

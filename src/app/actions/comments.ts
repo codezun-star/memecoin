@@ -14,7 +14,9 @@ export type CommentState = {
 const MAX_BODY = 2000;
 
 async function requireUser() {
-  if (!isSupabaseConfigured) return { error: "Supabase no está configurado." as const };
+  if (!isSupabaseConfigured) {
+    return { error: "El debate no está disponible en este momento." as const };
+  }
 
   const supabase = await createClient();
   const {

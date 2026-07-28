@@ -76,7 +76,7 @@ export function ProfileForm({
       <Field
         label="URL del avatar"
         htmlFor="avatar_url"
-        hint="Opcional. En una versión futura se podrá subir la imagen a Supabase Storage."
+        hint="Opcional. Pega el enlace de una imagen."
       >
         <Input
           id="avatar_url"

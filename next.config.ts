@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Sin la cabecera X-Powered-By: anuncia el framework en cada respuesta y no
+  // aporta nada al visitante.
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       // Logos de las monedas servidos por CoinGecko
