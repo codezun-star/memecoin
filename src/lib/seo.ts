@@ -16,6 +16,20 @@ import type { FaqItem } from "@/lib/markdown";
 
 export const NOMBRE_ORGANIZACION = "Memecoin Plaza";
 
+/**
+ * Lo que toda página debe repetir en su Open Graph.
+ *
+ * Next **no** fusiona los objetos anidados del metadata: una página que declara
+ * su propio `openGraph` sustituye entero el del layout, y se lleva por delante
+ * `siteName` y `locale` sin avisar. El resultado era que ninguna página que
+ * personalizaba su tarjeta emitía `og:site_name` — justo una de las señales de
+ * las que Search saca el nombre del sitio. Se esparce en cada `openGraph`.
+ */
+export const OG_SITIO = {
+  siteName: NOMBRE_ORGANIZACION,
+  locale: "es_ES",
+} as const;
+
 const LOGO = `${SITE_URL}/icons/icon-512.png`;
 
 /** Referencia corta a la organización, para incrustar en otros esquemas. */
@@ -31,19 +45,28 @@ export function organizacion(descripcion: string): Record<string, unknown> {
     "@type": "Organization",
     "@id": `${SITE_URL}/#organizacion`,
     name: NOMBRE_ORGANIZACION,
-    url: SITE_URL,
+    url: `${SITE_URL}/`,
     description: descripcion,
     logo: { "@type": "ImageObject", url: LOGO, width: 512, height: 512 },
   };
 }
 
+/**
+ * Identidad del sitio. Va en la portada y solo en la portada.
+ *
+ * De este nodo saca Google el nombre con el que rotula el resultado. Sin él
+ * cae al dominio registrable, y entonces un subdominio aparece bajo el nombre
+ * del dominio padre en vez del suyo. `alternateName` no es decorativo: es la
+ * segunda opción que puede elegir Search si descarta la primera.
+ */
 export function sitioWeb(descripcion: string): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${SITE_URL}/#sitio`,
     name: NOMBRE_ORGANIZACION,
-    url: SITE_URL,
+    alternateName: "Memecoin Plaza — precios y foro de meme coins",
+    url: `${SITE_URL}/`,
     description: descripcion,
     inLanguage: "es-ES",
     publisher: { "@id": `${SITE_URL}/#organizacion` },

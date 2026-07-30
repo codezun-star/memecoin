@@ -15,9 +15,11 @@ import { getAllPosts } from "@/lib/blog";
 import {
   listaDeElementos,
   organizacion,
+  OG_SITIO,
   preguntasFrecuentes,
   sitioWeb,
 } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site-config";
 import type { FaqItem } from "@/lib/markdown";
 
 // El primer pintado se sirve cacheado hasta un minuto; a partir de ahí el
@@ -42,8 +44,10 @@ export const metadata: Metadata = {
     "qué es una meme coin",
   ],
   openGraph: {
+    ...OG_SITIO,
     title: "Memecoin Plaza: precios de meme coins en tiempo real y foro",
     description: DESCRIPCION,
+    url: `${SITE_URL}/`,
     type: "website",
   },
 };

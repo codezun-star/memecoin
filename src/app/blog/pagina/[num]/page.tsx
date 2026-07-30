@@ -5,6 +5,7 @@ import { PostCard } from "@/components/blog/post-card";
 import { Paginacion, rutaDePagina } from "@/components/blog/paginacion";
 import { Reveal } from "@/components/reveal";
 import { getAllPosts, getPostsPaginados, POSTS_POR_PAGINA } from "@/lib/blog";
+import { OG_SITIO } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 export async function generateStaticParams() {
@@ -30,6 +31,7 @@ export async function generateMetadata({
     // adelante quedarían fuera del índice.
     alternates: { canonical: rutaDePagina(pagina) },
     openGraph: {
+      ...OG_SITIO,
       title: `Blog sobre meme coins — página ${pagina}`,
       description: "Guías y análisis sobre meme coins.",
       url: `${SITE_URL}${rutaDePagina(pagina)}`,

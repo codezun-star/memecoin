@@ -10,7 +10,7 @@ import { PostCard } from "@/components/blog/post-card";
 import { Reveal } from "@/components/reveal";
 import { CommentThread } from "@/components/comments/comment-thread";
 import { formatPostDate, getAllPosts, getPost } from "@/lib/blog";
-import { migas, preguntasFrecuentes } from "@/lib/seo";
+import { migas, OG_SITIO, preguntasFrecuentes } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 /** Pre-renderiza cada artículo como HTML estático en el build. */
@@ -39,6 +39,7 @@ export async function generateMetadata({
     keywords: post.keywords,
     authors: [{ name: post.author }],
     openGraph: {
+      ...OG_SITIO,
       title: post.title,
       description: post.description,
       url,

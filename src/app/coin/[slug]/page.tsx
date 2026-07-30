@@ -18,6 +18,7 @@ import type { ChartPoint } from "@/components/price-chart";
 import { getCoinContent, monedasRelacionadas } from "@/lib/coin-content";
 import { getMarkets, getMarketChart } from "@/lib/coingecko";
 import { TRACKED_COINS, getCoinBySlug } from "@/lib/coins";
+import { OG_SITIO } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +82,7 @@ export async function generateMetadata({
             `${coin.symbol.toLowerCase()} en tiempo real`,
           ],
     openGraph: {
+      ...OG_SITIO,
       title,
       description,
       url: `${SITE_URL}/coin/${coin.slug}`,

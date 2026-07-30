@@ -7,7 +7,7 @@ import { TradeTape } from "@/components/trade-tape";
 import { TRADABLE_COINS } from "@/lib/coins";
 import { getMarkets } from "@/lib/coingecko";
 import type { FaqItem } from "@/lib/markdown";
-import { migas, preguntasFrecuentes } from "@/lib/seo";
+import { migas, OG_SITIO, preguntasFrecuentes } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 /**
@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     "volumen en tiempo real shiba inu",
   ],
   openGraph: {
+    ...OG_SITIO,
     title: "Operaciones en vivo · Memecoin Plaza",
     description: DESCRIPCION,
     url: `${SITE_URL}/operaciones`,

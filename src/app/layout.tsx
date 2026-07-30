@@ -36,6 +36,12 @@ export const metadata: Metadata = {
   },
   description:
     "Precios en tiempo real y foro de la comunidad para Dogecoin, Shiba Inu, Pepe y Bonk.",
+  applicationName: "Memecoin Plaza",
+  // El sitio es su propia marca, no una sección de otra: la autoría apunta
+  // aquí para que Search no lo agrupe bajo el dominio padre.
+  authors: [{ name: "Memecoin Plaza", url: SITE_URL }],
+  creator: "Memecoin Plaza",
+  publisher: "Memecoin Plaza",
   alternates: { canonical: "/" },
   openGraph: {
     title: "Memecoin Plaza",

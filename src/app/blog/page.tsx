@@ -6,7 +6,7 @@ import { PostCard } from "@/components/blog/post-card";
 import { Paginacion } from "@/components/blog/paginacion";
 import { Reveal } from "@/components/reveal";
 import { getAllPosts, getPostsPaginados } from "@/lib/blog";
-import { migas } from "@/lib/seo";
+import { migas, OG_SITIO } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     "Guías claras sobre meme coins: cómo funcionan, cómo se leen sus métricas y qué mirar antes de entrar. En castellano y sin señales de compra.",
   alternates: { canonical: "/blog" },
   openGraph: {
+    ...OG_SITIO,
     title: "Blog sobre meme coins · Memecoin Plaza",
     description:
       "Guías claras sobre meme coins: cómo funcionan, cómo se leen sus métricas y qué mirar antes de entrar.",
