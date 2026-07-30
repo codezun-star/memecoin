@@ -60,8 +60,20 @@ export function SiteFooter() {
           </ul>
         </nav>
       </div>
-      <div className="shell border-t border-line py-5 text-xs text-ink-faint">
-        © {new Date().getFullYear()} Memecoin Plaza · Datos de mercado por CoinGecko
+      <div className="shell flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line py-5 text-xs text-ink-faint">
+        <span>© {new Date().getFullYear()} Memecoin Plaza · Datos de mercado por CoinGecko</span>
+        {/*
+          El enlace a /llms.txt es lo que hace que ese archivo se descubra: su
+          ruta está convenida, pero un rastreador solo la pide si sabe que
+          existe, y robots.txt no tiene ningún campo donde anunciarla.
+        */}
+        <a
+          href="/llms.txt"
+          className="transition-colors hover:text-ink"
+          title="Resumen del sitio en texto plano, para modelos de lenguaje"
+        >
+          llms.txt
+        </a>
       </div>
     </footer>
   );

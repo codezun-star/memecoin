@@ -12,6 +12,7 @@ import { getMarkets } from "@/lib/coingecko";
 import { getCommentCounts } from "@/lib/comments";
 import { TRACKED_COINS } from "@/lib/coins";
 import { getAllPosts } from "@/lib/blog";
+import { FAQ_INICIO } from "@/lib/faq-inicio";
 import {
   listaDeElementos,
   organizacion,
@@ -20,7 +21,6 @@ import {
   sitioWeb,
 } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
-import type { FaqItem } from "@/lib/markdown";
 
 // El primer pintado se sirve cacheado hasta un minuto; a partir de ahí el
 // cliente mantiene los precios frescos por su cuenta.
@@ -52,46 +52,6 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * Preguntas de entrada al tema.
- *
- * Son las que trae quien todavía no sabe qué es esto, que es un perfil de
- * búsqueda distinto del de quien ya busca una moneda concreta. Esas otras
- * preguntas viven en la ficha de cada moneda.
- */
-const FAQ: FaqItem[] = [
-  {
-    pregunta: "¿Qué es una meme coin?",
-    respuesta:
-      "Una criptomoneda cuyo valor no procede de un producto, unos ingresos ni una tecnología propia, sino de la comunidad y la cultura que se forma a su alrededor. Dogecoin fue la primera, en 2013, y hoy hay miles. Lo que las distingue no es la tecnología —muchas son tokens estándar sin nada especial— sino que su precio depende casi por completo de la atención que consigan.",
-  },
-  {
-    pregunta: "¿Cuáles son las meme coins más importantes?",
-    respuesta:
-      "Por capitalización, las referencias históricas son Dogecoin y Shiba Inu. A partir de 2023 se sumaron Pepe en Ethereum, y Bonk, dogwifhat y otras en Solana. En esta página verás las que seguimos, ordenadas por capitalización y con los datos actualizándose solos.",
-  },
-  {
-    pregunta: "¿Cómo se leen los datos de una meme coin?",
-    respuesta:
-      "El precio unitario por sí solo no dice nada, porque depende de cuántas unidades existan: una moneda a 0,00002 $ con billones de unidades puede valer más en total que otra a 5 $. Lo comparable es la capitalización, que es precio por suministro circulante. El volumen de 24 horas indica cuánto se ha movido de verdad; un precio que aguanta sin volumen se sostiene sobre muy pocas operaciones.",
-  },
-  {
-    pregunta: "¿De dónde salen los precios de esta página?",
-    respuesta:
-      "De datos públicos de mercado que se actualizan solos cada veinte segundos, sin necesidad de recargar. En la página de operaciones puedes ver además las compras y ventas individuales según se ejecutan.",
-  },
-  {
-    pregunta: "¿Hace falta registrarse para consultar los precios?",
-    respuesta:
-      "No. Todos los precios, gráficos y datos de mercado son públicos y no requieren cuenta. Solo hace falta registrarse para participar en el debate: escribir comentarios y dar like a los de otras personas.",
-  },
-  {
-    pregunta: "¿Es buena idea invertir en meme coins?",
-    respuesta:
-      "Aquí no damos recomendaciones de inversión ni las daremos. Lo que sí conviene tener claro es el perfil de riesgo: son de los activos más volátiles que existen, prácticamente todas han caído más de un 80 % desde sus máximos en algún momento, y la mayoría de las que se lanzan desaparecen. La información de este sitio está para ayudarte a decidir por tu cuenta, no para decidir por ti.",
-  },
-];
-
 export default async function HomePage() {
   const posts = await getAllPosts();
 
@@ -108,7 +68,7 @@ export default async function HomePage() {
               ruta: `/coin/${coin.slug}`,
             })),
           ),
-          preguntasFrecuentes(FAQ),
+          preguntasFrecuentes(FAQ_INICIO),
         ]}
       />
 
@@ -348,7 +308,7 @@ function Faq() {
       <div className="mx-auto max-w-3xl">
         <h2 className="font-display text-display-md">Preguntas frecuentes</h2>
         <div className="mt-6 space-y-3">
-          {FAQ.map((item) => (
+          {FAQ_INICIO.map((item) => (
             <details key={item.pregunta} className="surface-card group p-5">
               <summary className="cursor-pointer list-none font-display font-bold text-ink marker:content-none">
                 <span className="inline-flex w-full items-center justify-between gap-4">

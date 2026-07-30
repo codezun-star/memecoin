@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     "/blog/[slug]": ["./content/blog/**/*"],
     "/blog/categoria/[tag]": ["./content/blog/**/*"],
     "/sitemap.xml": ["./content/blog/**/*"],
+    // /llms.txt lee los dos: enumera los artículos y las fichas de monedas.
+    "/llms.txt": ["./content/blog/**/*", "./content/monedas/**/*"],
   },
   images: {
     remotePatterns: [

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { JsonLd } from "@/components/json-ld";
 import { PostCard } from "@/components/blog/post-card";
 import { Paginacion, rutaDePagina } from "@/components/blog/paginacion";
 import { Reveal } from "@/components/reveal";
 import { getAllPosts, getPostsPaginados, POSTS_POR_PAGINA } from "@/lib/blog";
-import { OG_SITIO } from "@/lib/seo";
+import { migas, OG_SITIO, organizacionRef } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 
 export async function generateStaticParams() {
@@ -53,8 +54,44 @@ export default async function BlogPaginaPage({ params }: { params: Promise<{ num
 
   const todos = await getAllPosts();
 
+  /*
+   * El listado no declaraba nada, así que estas páginas eran las únicas del
+   * blog sin datos estructurados: un rastreador que aterrizaba en la 3 veía
+   * nueve titulares sueltos y tenía que entrar en cada uno para saber de qué
+   * iban. Se declara el mismo `Blog` que /blog, con los artículos de ESTA
+   * página —el esquema describe lo que hay en la página, no el archivo
+   * entero— y sus migas.
+   */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Blog de Memecoin Plaza",
+    description: `Guías y análisis sobre meme coins. Página ${pagina} del archivo.`,
+    url: `${SITE_URL}${rutaDePagina(pagina)}`,
+    inLanguage: "es-ES",
+    publisher: organizacionRef,
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      dateModified: post.updated ?? post.date,
+      url: `${SITE_URL}/blog/${post.slug}`,
+    })),
+  };
+
   return (
     <div className="shell py-10 md:py-14">
+      <JsonLd
+        esquemas={[
+          jsonLd,
+          migas([
+            { nombre: "Blog", ruta: "/blog" },
+            { nombre: `Página ${pagina}`, ruta: rutaDePagina(pagina) },
+          ]),
+        ]}
+      />
+
       <header className="mb-10 max-w-2xl">
         <p className="eyebrow mb-2">El blog · página {pagina}</p>
         <h1 className="font-display text-display-lg">Archivo</h1>
